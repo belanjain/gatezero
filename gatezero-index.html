@@ -1,0 +1,2586 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#030712">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Gate Zero">
+<link rel="manifest" href="manifest.json">
+<title>Gate Zero</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;700;900&family=Noto+Sans:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #030712;
+  --bg2: #070d1a;
+  --bg3: #0a1225;
+  --panel: #0d1830;
+  --border: #1a3060;
+  --border2: #2a4a8a;
+  --cyan: #00d4ff;
+  --cyan2: #80eaff;
+  --blue: #2563eb;
+  --blue2: #3b82f6;
+  --violet: #7c3aed;
+  --violet2: #8b5cf6;
+  --red: #dc2626;
+  --red2: #ef4444;
+  --green: #16a34a;
+  --green2: #22c55e;
+  --gold: #f59e0b;
+  --gold2: #fbbf24;
+  --pink: #db2777;
+  --pink2: #ec4899;
+  --text: #e2e8f0;
+  --text2: #64748b;
+  --text3: #94a3b8;
+  --rank-f: #64748b;
+  --rank-e: #16a34a;
+  --rank-d: #2563eb;
+  --rank-c: #7c3aed;
+  --rank-b: #f59e0b;
+  --rank-a: #ea580c;
+  --rank-s: #dc2626;
+  --rank-ss: #db2777;
+  --rank-sss: #00d4ff;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Noto Sans', sans-serif;
+  font-size: 15px;
+  min-height: 100vh;
+  overflow: hidden;
+  position: relative;
+}
+
+/* Grid BG */
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image:
+    linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none; z-index: 0;
+}
+
+/* Scanline */
+body::after {
+  content: '';
+  position: fixed; inset: 0;
+  background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.08) 2px, rgba(0,0,0,0.08) 4px);
+  pointer-events: none; z-index: 0;
+}
+
+#particles { position: fixed; inset: 0; pointer-events: none; z-index: 1; overflow: hidden; }
+.particle {
+  position: absolute; width: 1px; height: 20px;
+  background: linear-gradient(to bottom, transparent, var(--cyan));
+  animation: fall linear infinite; opacity: 0;
+}
+@keyframes fall {
+  0% { transform: translateY(-20px); opacity: 0; }
+  10% { opacity: 0.6; }
+  90% { opacity: 0.3; }
+  100% { transform: translateY(100vh); opacity: 0; }
+}
+
+#app {
+  position: relative; z-index: 2;
+  max-width: 480px; margin: 0 auto;
+  min-height: 100vh; display: flex; flex-direction: column;
+}
+
+.screen { display: none; flex-direction: column; min-height: 100vh; animation: fadeIn 0.35s ease; }
+.screen.active { display: flex; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+/* ===== TYPOGRAPHY ===== */
+.orbitron { font-family: 'Orbitron', monospace; }
+.rajdhani { font-family: 'Rajdhani', sans-serif; }
+
+/* ===== TITLE ===== */
+#screen-title {
+  background: radial-gradient(ellipse at 50% 30%, #0a1a3a 0%, #030712 70%);
+  align-items: center; justify-content: center; text-align: center;
+  padding: 40px 24px; gap: 0;
+}
+.title-gate {
+  width: 100px; height: 100px; margin: 0 auto 20px;
+  border: 2px solid var(--cyan);
+  border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  font-size: 44px; position: relative;
+  box-shadow: 0 0 30px var(--cyan), inset 0 0 30px rgba(0,212,255,0.1);
+  animation: gateGlow 3s ease-in-out infinite;
+}
+@keyframes gateGlow {
+  0%,100% { box-shadow: 0 0 20px var(--cyan), inset 0 0 20px rgba(0,212,255,0.1); }
+  50% { box-shadow: 0 0 60px var(--cyan), inset 0 0 40px rgba(0,212,255,0.2); }
+}
+.title-gate::before {
+  content: ''; position: absolute; inset: -8px;
+  border: 1px solid rgba(0,212,255,0.3); border-radius: 50%;
+  animation: spin 8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.game-title {
+  font-family: 'Orbitron', monospace; font-weight: 900;
+  font-size: 36px; letter-spacing: 4px;
+  color: var(--cyan);
+  text-shadow: 0 0 40px rgba(0,212,255,0.6);
+  margin-bottom: 4px;
+}
+.game-sub {
+  font-family: 'Rajdhani', sans-serif; font-size: 12px;
+  letter-spacing: 6px; color: var(--text2);
+  text-transform: uppercase; margin-bottom: 32px;
+}
+.title-divider {
+  width: 200px; height: 1px; margin: 0 auto 32px;
+  background: linear-gradient(to right, transparent, var(--cyan), transparent);
+}
+.title-flavor {
+  font-style: italic; color: var(--text3);
+  font-size: 13px; max-width: 280px; line-height: 1.7;
+  margin-bottom: 40px;
+}
+
+/* ===== BUTTONS ===== */
+.btn {
+  display: block; width: 100%;
+  padding: 13px 24px;
+  background: linear-gradient(135deg, rgba(0,212,255,0.08), rgba(0,212,255,0.02));
+  border: 1px solid var(--border2);
+  border-radius: 2px;
+  color: var(--cyan); cursor: pointer;
+  font-family: 'Rajdhani', sans-serif; font-size: 15px;
+  font-weight: 600; letter-spacing: 3px; text-transform: uppercase;
+  transition: all 0.2s; text-align: center;
+  margin-bottom: 10px; position: relative; overflow: hidden;
+  clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+}
+.btn::before {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(135deg, rgba(0,212,255,0.15), transparent);
+  opacity: 0; transition: opacity 0.2s;
+}
+.btn:active { transform: scale(0.97); }
+.btn:hover::before, .btn:active::before { opacity: 1; }
+.btn.secondary { color: var(--text3); border-color: var(--border); background: transparent; }
+.btn.danger { color: var(--red2); border-color: #4a1515; background: rgba(220,38,38,0.05); }
+.btn.success { color: var(--green2); border-color: #154a15; background: rgba(34,197,94,0.05); }
+.btn.violet { color: var(--violet2); border-color: #3a1a6a; background: rgba(124,58,237,0.08); }
+.btn.small { padding: 8px 16px; font-size: 12px; margin-bottom: 6px; letter-spacing: 2px; }
+.btn:disabled { opacity: 0.3; cursor: not-allowed; }
+.btn-row { display: flex; gap: 8px; }
+.btn-row .btn { flex: 1; }
+
+/* ===== CREATE CHARACTER ===== */
+#screen-create { padding: 0; }
+.create-header {
+  background: linear-gradient(180deg, #0a1530, #070d1a);
+  padding: 20px 20px 14px; border-bottom: 1px solid var(--border);
+}
+.create-header h2 {
+  font-family: 'Orbitron', monospace; color: var(--cyan);
+  font-size: 16px; margin-bottom: 4px; letter-spacing: 2px;
+}
+.step-dots { display: flex; gap: 6px; margin-top: 8px; }
+.step-dot {
+  width: 24px; height: 3px; background: var(--border);
+  border-radius: 2px; transition: background 0.3s;
+}
+.step-dot.active { background: var(--cyan); }
+.step-dot.done { background: var(--green2); }
+
+.create-body { flex: 1; overflow-y: auto; padding: 20px; }
+.create-footer { padding: 14px 20px; border-top: 1px solid var(--border); background: var(--bg2); }
+
+.section-label {
+  font-family: 'Rajdhani', sans-serif; font-size: 11px;
+  letter-spacing: 3px; color: var(--text2);
+  text-transform: uppercase; margin-bottom: 10px;
+}
+
+.input-field {
+  width: 100%; padding: 12px 16px;
+  background: var(--bg3); border: 1px solid var(--border);
+  border-radius: 2px; color: var(--text);
+  font-family: 'Rajdhani', sans-serif; font-size: 17px;
+  font-weight: 500; letter-spacing: 1px;
+  margin-bottom: 16px; outline: none; transition: border-color 0.2s;
+}
+.input-field:focus { border-color: var(--cyan); }
+
+.card-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px; }
+.select-card {
+  background: var(--bg3); border: 1px solid var(--border);
+  border-radius: 4px; padding: 14px 10px;
+  cursor: pointer; transition: all 0.2s; text-align: center;
+}
+.select-card:active { transform: scale(0.96); }
+.select-card.selected {
+  border-color: var(--cyan); background: rgba(0,212,255,0.05);
+  box-shadow: 0 0 12px rgba(0,212,255,0.15);
+}
+.card-icon { font-size: 28px; margin-bottom: 6px; }
+.card-name {
+  font-family: 'Rajdhani', sans-serif; font-weight: 700;
+  font-size: 14px; color: var(--cyan); display: block; margin-bottom: 3px;
+}
+.card-desc { font-size: 11px; color: var(--text3); line-height: 1.4; }
+.card-bonus { font-size: 10px; color: var(--gold2); margin-top: 4px; font-family: 'Rajdhani', sans-serif; }
+
+/* ===== HUD ===== */
+#screen-game { padding: 0; }
+.hud {
+  background: linear-gradient(180deg, var(--bg3), var(--bg2));
+  border-bottom: 1px solid var(--border); padding: 10px 14px 8px;
+  display: flex; align-items: flex-start; gap: 10px;
+  position: relative; overflow: hidden;
+}
+.hud::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(to right, transparent, var(--cyan), transparent);
+}
+.hud-avatar { font-size: 30px; flex-shrink: 0; margin-top: 2px; }
+.hud-info { flex: 1; min-width: 0; }
+.hud-name {
+  font-family: 'Orbitron', monospace; font-size: 12px;
+  color: var(--cyan2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  margin-bottom: 1px;
+}
+.hud-meta { font-size: 10px; color: var(--text2); margin-bottom: 5px; font-family: 'Rajdhani', sans-serif; letter-spacing: 1px; }
+.bar-row { display: flex; align-items: center; gap: 6px; margin-bottom: 3px; }
+.bar-label { font-size: 9px; color: var(--text2); width: 18px; flex-shrink: 0; font-family: 'Orbitron', monospace; }
+.bar { flex: 1; height: 6px; background: #0a1020; border-radius: 0; overflow: hidden; border: 1px solid var(--border); }
+.bar-fill { height: 100%; transition: width 0.4s ease; }
+.bar-fill.hp { background: linear-gradient(to right, #7f1d1d, var(--red2)); }
+.bar-fill.mp { background: linear-gradient(to right, #1e1b4b, var(--violet2)); }
+.bar-fill.xp { background: linear-gradient(to right, #164e63, var(--cyan)); }
+.bar-val { font-size: 9px; color: var(--text3); width: 40px; text-align: right; font-family: 'Orbitron', monospace; flex-shrink: 0; }
+.hud-right { text-align: right; flex-shrink: 0; }
+.hud-level-label { font-size: 8px; color: var(--text2); letter-spacing: 2px; font-family: 'Rajdhani', sans-serif; text-transform: uppercase; }
+.hud-level { font-family: 'Orbitron', monospace; font-size: 16px; color: var(--cyan); line-height: 1; }
+.hud-rank { font-family: 'Orbitron', monospace; font-size: 10px; margin-top: 3px; }
+.hud-gold { font-size: 11px; color: var(--gold2); margin-top: 2px; font-family: 'Rajdhani', sans-serif; }
+
+/* Nav */
+.nav-tabs {
+  display: flex; background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+}
+.nav-tab {
+  flex: 1; padding: 9px 4px; background: none; border: none;
+  color: var(--text2); font-size: 16px; cursor: pointer;
+  transition: all 0.2s; border-bottom: 2px solid transparent;
+  position: relative;
+}
+.nav-tab.active { color: var(--cyan); border-bottom-color: var(--cyan); }
+.notif-dot {
+  position: absolute; top: 4px; right: 8px;
+  width: 7px; height: 7px; background: var(--red2); border-radius: 50%;
+}
+
+.game-content { flex: 1; overflow-y: auto; padding: 14px; }
+
+/* ===== STORY ===== */
+.location-bar {
+  display: flex; align-items: center; gap: 8px;
+  margin-bottom: 12px;
+}
+.location-bar .loc-text {
+  font-family: 'Rajdhani', sans-serif; font-size: 10px;
+  letter-spacing: 3px; color: var(--text2); text-transform: uppercase;
+  flex: 1; text-align: center;
+}
+.loc-line { flex: 1; height: 1px; background: linear-gradient(to right, transparent, var(--border)); }
+.loc-line.right { background: linear-gradient(to left, transparent, var(--border)); }
+
+.story-box {
+  background: var(--panel); border: 1px solid var(--border);
+  border-radius: 4px; padding: 16px; margin-bottom: 12px;
+  position: relative; overflow: hidden;
+}
+.story-box::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(to right, transparent, var(--border2), transparent);
+}
+.story-corner {
+  position: absolute; top: 0; left: 0;
+  width: 12px; height: 12px;
+  border-top: 2px solid var(--cyan); border-left: 2px solid var(--cyan);
+}
+.story-corner.br {
+  top: auto; left: auto; bottom: 0; right: 0;
+  border-top: none; border-left: none;
+  border-bottom: 2px solid var(--cyan); border-right: 2px solid var(--cyan);
+}
+.story-text { line-height: 1.8; color: var(--text); font-size: 14px; }
+.story-text em { color: var(--cyan2); font-style: italic; }
+.npc-name { font-family: 'Rajdhani', sans-serif; font-weight: 700; font-size: 13px; color: var(--gold2); display: block; margin-bottom: 2px; }
+.npc-say { font-style: italic; color: #cbd5e1; font-size: 14px; }
+.sys-msg {
+  background: rgba(0,212,255,0.05); border: 1px solid rgba(0,212,255,0.2);
+  border-radius: 4px; padding: 10px 14px; margin: 8px 0;
+  font-family: 'Orbitron', monospace; font-size: 12px; color: var(--cyan2);
+  text-align: center; letter-spacing: 1px;
+}
+
+.choices { display: flex; flex-direction: column; gap: 7px; }
+.choice-btn {
+  background: var(--bg3); border: 1px solid var(--border);
+  border-radius: 3px; padding: 11px 14px;
+  color: var(--text); font-family: 'Noto Sans', sans-serif;
+  font-size: 13px; cursor: pointer; transition: all 0.2s;
+  text-align: left; line-height: 1.5;
+  clip-path: polygon(6px 0%, 100% 0%, calc(100% - 6px) 100%, 0% 100%);
+}
+.choice-btn:active { background: rgba(0,212,255,0.05); border-color: var(--cyan); transform: scale(0.98); }
+.choice-prefix { color: var(--cyan); font-family: 'Rajdhani', sans-serif; font-size: 10px; letter-spacing: 2px; margin-bottom: 2px; display: block; }
+.choice-btn.combat-choice { border-color: #4a1515; }
+.choice-btn.combat-choice .choice-prefix { color: var(--red2); }
+.choice-btn.romance-choice { border-color: #4a1540; }
+.choice-btn.romance-choice .choice-prefix { color: var(--pink2); }
+.choice-btn.system-choice { border-color: #1a3060; }
+.choice-btn.system-choice .choice-prefix { color: var(--cyan); }
+
+/* ===== COMBAT ===== */
+.combat-wrap {
+  background: linear-gradient(135deg, #0d0505, #150808);
+  border: 1px solid #4a1515; border-radius: 4px; padding: 14px; margin-bottom: 12px;
+}
+.combat-header {
+  font-family: 'Orbitron', monospace; font-size: 9px;
+  letter-spacing: 4px; color: var(--red2); text-align: center; margin-bottom: 12px;
+}
+.enemy-display { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+.enemy-sprite { font-size: 44px; animation: enemyFloat 2s ease-in-out infinite; }
+@keyframes enemyFloat { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-4px);} }
+.enemy-data { flex: 1; }
+.enemy-name { font-family: 'Rajdhani', sans-serif; font-weight: 700; font-size: 16px; color: #fca5a5; }
+.enemy-rank-badge {
+  display: inline-block; padding: 1px 8px;
+  font-family: 'Orbitron', monospace; font-size: 10px; border-radius: 2px; margin-bottom: 4px;
+}
+.combat-log {
+  background: #0a0202; border: 1px solid #2a0a0a;
+  border-radius: 3px; padding: 10px; font-size: 12px;
+  line-height: 1.7; margin-bottom: 12px; max-height: 110px; overflow-y: auto;
+  font-family: 'Rajdhani', sans-serif;
+}
+.log-player { color: var(--cyan2); }
+.log-enemy { color: #fca5a5; }
+.log-crit { color: #ff6060; font-weight: 700; }
+.log-miss { color: var(--text2); font-style: italic; }
+.log-heal { color: var(--green2); }
+.log-system { color: var(--gold2); }
+.log-skill { color: var(--violet2); }
+
+.combat-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.action-btn {
+  background: rgba(0,0,0,0.4); border: 1px solid var(--border);
+  border-radius: 3px; padding: 10px 8px; cursor: pointer;
+  color: var(--text3); font-family: 'Rajdhani', sans-serif;
+  font-size: 13px; font-weight: 600; transition: all 0.2s;
+  text-align: center; letter-spacing: 1px;
+}
+.action-btn:active { transform: scale(0.96); }
+.action-btn.atk { border-color: #4a1515; color: var(--red2); }
+.action-btn.skl { border-color: #3a1a6a; color: var(--violet2); }
+.action-btn.itm { border-color: #164e63; color: var(--cyan); }
+.action-btn.def { border-color: #1a3a1a; color: var(--green2); }
+.action-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+/* ===== STATS ===== */
+.stats-section { margin-bottom: 18px; }
+.stats-title {
+  font-family: 'Orbitron', monospace; font-size: 10px;
+  letter-spacing: 3px; color: var(--cyan); text-transform: uppercase;
+  margin-bottom: 10px; padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 8px;
+}
+.stats-title::after { content: ''; flex: 1; height: 1px; background: linear-gradient(to right, var(--border), transparent); }
+
+.stat-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 6px 0; border-bottom: 1px solid rgba(26,48,96,0.3);
+}
+.stat-name { font-size: 13px; color: var(--text3); font-family: 'Rajdhani', sans-serif; letter-spacing: 1px; }
+.stat-val { font-family: 'Orbitron', monospace; font-size: 13px; color: var(--cyan2); }
+.stat-val.up { color: var(--green2); }
+
+/* Star display */
+.star-display { display: flex; gap: 3px; margin: 12px 0; justify-content: center; }
+.star { font-size: 20px; transition: all 0.3s; }
+.star.lit { filter: drop-shadow(0 0 6px var(--gold)); }
+.star.dim { filter: grayscale(1) opacity(0.3); }
+
+.class-display {
+  background: rgba(0,212,255,0.05); border: 1px solid var(--border2);
+  border-radius: 4px; padding: 14px; text-align: center; margin-bottom: 14px;
+}
+.class-icon-big { font-size: 48px; margin-bottom: 6px; }
+.class-name-big {
+  font-family: 'Orbitron', monospace; font-size: 16px;
+  color: var(--cyan); letter-spacing: 2px;
+}
+.class-rank-line { font-family: 'Rajdhani', sans-serif; font-size: 12px; color: var(--text2); margin-top: 4px; letter-spacing: 2px; }
+
+.upgrade-banner {
+  background: linear-gradient(135deg, rgba(124,58,237,0.15), rgba(0,212,255,0.05));
+  border: 1px solid var(--violet); border-radius: 4px;
+  padding: 12px; margin-bottom: 14px; text-align: center;
+}
+.upgrade-banner h3 { font-family: 'Orbitron', monospace; color: var(--violet2); font-size: 13px; margin-bottom: 4px; }
+.upgrade-banner p { font-size: 12px; color: var(--text3); }
+
+/* ===== INVENTORY ===== */
+.item-list { display: flex; flex-direction: column; gap: 7px; margin-bottom: 14px; }
+.item-card {
+  background: var(--panel); border: 1px solid var(--border);
+  border-radius: 3px; padding: 11px 12px;
+  display: flex; align-items: center; gap: 10px;
+  cursor: pointer; transition: all 0.2s;
+}
+.item-card:active { background: rgba(0,212,255,0.04); border-color: var(--border2); }
+.item-icon { font-size: 22px; flex-shrink: 0; }
+.item-info { flex: 1; min-width: 0; }
+.item-name { font-family: 'Rajdhani', sans-serif; font-weight: 700; font-size: 14px; color: var(--cyan2); margin-bottom: 1px; }
+.item-desc { font-size: 11px; color: var(--text3); }
+.item-stat { font-size: 11px; color: var(--green2); font-family: 'Orbitron', monospace; font-size: 10px; margin-top: 2px; }
+.item-qty { font-family: 'Orbitron', monospace; font-size: 12px; color: var(--text2); flex-shrink: 0; }
+.rarity-common { color: var(--text2); }
+.rarity-uncommon { color: var(--green2); }
+.rarity-rare { color: var(--blue2); }
+.rarity-epic { color: var(--violet2); }
+.rarity-legendary { color: var(--gold2); }
+.eq-badge { font-size: 9px; color: var(--green2); letter-spacing: 1px; font-family: 'Orbitron', monospace; }
+
+/* ===== DUNGEON LOG ===== */
+.gate-card {
+  background: var(--panel); border: 1px solid var(--border);
+  border-radius: 4px; padding: 14px; margin-bottom: 10px;
+  display: flex; align-items: center; gap: 12px;
+  cursor: pointer; transition: all 0.2s;
+}
+.gate-card:active { transform: scale(0.98); }
+.gate-rank-badge {
+  width: 44px; height: 44px; border-radius: 4px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Orbitron', monospace; font-weight: 900; font-size: 14px;
+  flex-shrink: 0; border: 2px solid;
+}
+.gate-info { flex: 1; }
+.gate-name { font-family: 'Rajdhani', sans-serif; font-weight: 700; font-size: 15px; color: var(--text); margin-bottom: 2px; }
+.gate-desc { font-size: 11px; color: var(--text3); }
+.gate-cleared { font-size: 10px; color: var(--green2); font-family: 'Orbitron', monospace; }
+
+/* ===== ROMANCE ===== */
+.npc-card {
+  background: var(--panel); border: 1px solid var(--border);
+  border-radius: 4px; padding: 14px; margin-bottom: 12px;
+  display: flex; gap: 12px; align-items: flex-start;
+}
+.npc-avatar { font-size: 36px; flex-shrink: 0; }
+.npc-data { flex: 1; }
+.npc-name-r { font-family: 'Rajdhani', sans-serif; font-weight: 700; font-size: 16px; color: var(--pink2); }
+.npc-role { font-size: 11px; color: var(--text2); margin-bottom: 6px; letter-spacing: 1px; }
+.affinity-bar { height: 5px; background: var(--bg3); border-radius: 0; overflow: hidden; border: 1px solid var(--border); margin-bottom: 3px; }
+.affinity-fill { height: 100%; background: linear-gradient(to right, var(--pink), #ff80b0); transition: width 0.5s; }
+.affinity-status { font-family: 'Orbitron', monospace; font-size: 9px; color: var(--text2); }
+
+/* ===== MODAL ===== */
+.modal-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,0.88); z-index: 100;
+  align-items: flex-end; justify-content: center;
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  background: var(--bg2); border: 1px solid var(--border2);
+  border-top: 2px solid var(--cyan);
+  width: 100%; max-width: 480px;
+  padding: 20px; max-height: 80vh; overflow-y: auto;
+  animation: slideUp 0.3s ease;
+}
+@keyframes slideUp { from{transform:translateY(100%);} to{transform:translateY(0);} }
+.modal-title { font-family: 'Orbitron', monospace; color: var(--cyan); font-size: 14px; margin-bottom: 14px; letter-spacing: 2px; }
+.modal-close { float: right; background: none; border: none; color: var(--text2); font-size: 20px; cursor: pointer; margin-top: -4px; }
+
+/* ===== TOAST ===== */
+#toast {
+  position: fixed; bottom: 70px; left: 50%; transform: translateX(-50%);
+  background: var(--bg3); border: 1px solid var(--cyan);
+  border-radius: 2px; padding: 8px 20px;
+  font-family: 'Rajdhani', sans-serif; font-size: 13px; color: var(--cyan2);
+  z-index: 200; opacity: 0; pointer-events: none;
+  transition: opacity 0.3s; white-space: nowrap; letter-spacing: 1px;
+  box-shadow: 0 0 20px rgba(0,212,255,0.2);
+  clip-path: polygon(6px 0%, 100% 0%, calc(100% - 6px) 100%, 0% 100%);
+}
+#toast.show { opacity: 1; }
+
+::-webkit-scrollbar { width: 3px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 0; }
+
+.rank-badge {
+  display: inline-block; padding: 1px 8px; border-radius: 2px;
+  font-family: 'Orbitron', monospace; font-size: 10px; font-weight: 700;
+}
+.rank-F { background: rgba(100,116,139,0.2); color: var(--rank-f); border: 1px solid var(--rank-f); }
+.rank-E { background: rgba(22,163,74,0.15); color: var(--rank-e); border: 1px solid var(--rank-e); }
+.rank-D { background: rgba(37,99,235,0.15); color: var(--rank-d); border: 1px solid var(--rank-d); }
+.rank-C { background: rgba(124,58,237,0.15); color: var(--rank-c); border: 1px solid var(--rank-c); }
+.rank-B { background: rgba(245,158,11,0.15); color: var(--rank-b); border: 1px solid var(--rank-b); }
+.rank-A { background: rgba(234,88,12,0.15); color: var(--rank-a); border: 1px solid var(--rank-a); }
+.rank-S { background: rgba(220,38,38,0.2); color: var(--rank-s); border: 1px solid var(--rank-s); }
+.rank-SS { background: rgba(219,39,119,0.2); color: var(--rank-ss); border: 1px solid var(--rank-ss); }
+.rank-SSS { background: rgba(0,212,255,0.15); color: var(--rank-sss); border: 1px solid var(--rank-sss); }
+
+.empty-state { text-align: center; color: var(--text2); font-style: italic; padding: 30px; font-family: 'Rajdhani', sans-serif; }
+</style>
+</head>
+<body>
+
+<div id="particles"></div>
+<div id="toast"></div>
+
+<div id="app">
+
+<!-- TITLE -->
+<div id="screen-title" class="screen active">
+  <div class="title-gate">🌀</div>
+  <div class="game-title">GATE ZERO</div>
+  <div class="game-sub">Dungeon Hunter RPG</div>
+  <div class="title-divider"></div>
+  <p class="title-flavor">Gate muncul tanpa peringatan. Monster mengalir keluar. Dan kamu — hunter paling lemah di dunia — baru saja menemukan sesuatu yang tidak seharusnya ada di dalam sana.</p>
+  <div class="title-divider"></div>
+  <button class="btn" onclick="unlockAudio();playBGM('bgm-menu');startNewGame()">▶ NEW GAME</button>
+  <button class="btn secondary" onclick="unlockAudio();playBGM('bgm-menu');openTitleLoadMenu()">◈ LOAD GAME</button>
+</div>
+
+<!-- CREATE -->
+<div id="screen-create" class="screen">
+  <div class="create-header">
+    <h2>HUNTER REGISTRATION</h2>
+    <div class="step-dots" id="step-dots"></div>
+  </div>
+  <div class="create-body" id="create-body"></div>
+  <div class="create-footer" id="create-footer"></div>
+</div>
+
+<!-- GAME -->
+<div id="screen-game" class="screen">
+  <div class="hud">
+    <div class="hud-avatar" id="hud-avatar">👤</div>
+    <div class="hud-info">
+      <div class="hud-name" id="hud-name">—</div>
+      <div class="hud-meta" id="hud-meta">—</div>
+      <div class="bar-row">
+        <span class="bar-label">HP</span>
+        <div class="bar"><div class="bar-fill hp" id="bar-hp" style="width:100%"></div></div>
+        <span class="bar-val" id="val-hp">—</span>
+      </div>
+      <div class="bar-row">
+        <span class="bar-label">MP</span>
+        <div class="bar"><div class="bar-fill mp" id="bar-mp" style="width:100%"></div></div>
+        <span class="bar-val" id="val-mp">—</span>
+      </div>
+      <div class="bar-row">
+        <span class="bar-label">XP</span>
+        <div class="bar"><div class="bar-fill xp" id="bar-xp" style="width:0%"></div></div>
+        <span class="bar-val" id="val-xp">—</span>
+      </div>
+    </div>
+    <div class="hud-right">
+      <div class="hud-level-label">LV</div>
+      <div class="hud-level" id="hud-level">1</div>
+      <div class="hud-rank" id="hud-rank">—</div>
+      <div class="hud-gold" id="hud-gold">💎 0</div>
+    </div>
+  </div>
+
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="switchTab('story')" id="tab-story">📡</button>
+    <button class="nav-tab" onclick="switchTab('status')" id="tab-status">⚡</button>
+    <button class="nav-tab" onclick="switchTab('inventory')" id="tab-inventory" style="position:relative">🎒<span class="notif-dot" id="inv-dot" style="display:none"></span></button>
+    <button class="nav-tab" onclick="switchTab('romance')" id="tab-romance">💕</button>
+    <button class="nav-tab" onclick="openSaveMenu()" id="tab-save" title="Save/Load">💾</button>
+    <button class="nav-tab" onclick="toggleMute()" id="tab-mute" title="Toggle Music">🔊</button>
+  </div>
+
+  <div class="game-content">
+    <div id="tab-story-content"></div>
+    <div id="tab-status-content" style="display:none"></div>
+    <div id="tab-inventory-content" style="display:none"></div>
+    <div id="tab-romance-content" style="display:none"></div>
+  </div>
+</div>
+
+</div><!-- #app -->
+
+<!-- Audio -->
+<audio id="bgm-menu"    src="audio/menu.ogg"    loop preload="auto"></audio>
+<audio id="bgm-dungeon" src="audio/dungeon.ogg"  loop preload="auto"></audio>
+<audio id="bgm-combat"  src="audio/combat.ogg"   loop preload="auto"></audio>
+<audio id="bgm-boss"    src="audio/boss.ogg"     loop preload="auto"></audio>
+
+<!-- Modals -->
+<div class="modal-overlay" id="item-modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('item-modal')">✕</button>
+    <div class="modal-title" id="modal-item-name">—</div>
+    <div id="modal-item-body"></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="class-modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('class-modal')">✕</button>
+    <div class="modal-title">◈ CLASS UPGRADE</div>
+    <div id="modal-class-body"></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="save-modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('save-modal')">✕</button>
+    <div class="modal-title">💾 SAVE / LOAD</div>
+    <div id="modal-save-body"></div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// DATA — CLASS PATHS
+// ============================================================
+const CLASS_PATHS = {
+  warrior: {
+    name:'Warrior', icon:'⚔️', desc:'Frontliner kuat. HP & DEF tinggi.',
+    stars:[
+      { star:1, name:'Warrior', icon:'⚔️' },
+      { star:2, name:'Fighter', icon:'🥊', req:{level:5, mat:'beast_core'}, bonus:{str:5,vit:3} },
+      { star:3, name:'Sword Master', icon:'🗡️', req:{level:10, mat:'steel_fragment'}, bonus:{str:8,atk:10} },
+      { star:4, name:'Battle King', icon:'👑', req:{level:18, mat:'dungeon_crystal'}, bonus:{str:12,vit:8} },
+      { star:5, name:'War Deity', icon:'💥', req:{level:28, mat:'sovereign_shard'}, bonus:{str:18,atk:20} },
+      { star:6, name:'Asura', icon:'🔱', req:{level:40, mat:'gate_core'}, bonus:{str:30,vit:20,atk:35}, awakened:true },
+    ],
+    baseStats:{ str:8, agi:3, int:1, vit:8, atk:12, def:10, matk:3 }
+  },
+  thief: {
+    name:'Thief', icon:'🗡️', desc:'Cepat & licik. Starter Assassin path.',
+    stars:[
+      { star:1, name:'Thief', icon:'🗡️' },
+      { star:2, name:'Assassin', icon:'🌑', req:{level:5, mat:'shadow_essence'}, bonus:{agi:5,crit:8} },
+      { star:3, name:'Shadow Blade', icon:'🩸', req:{level:10, mat:'void_crystal'}, bonus:{agi:8,crit:12} },
+      { star:4, name:'Void Walker', icon:'👁️', req:{level:18, mat:'dungeon_crystal'}, bonus:{agi:12,dodge:15} },
+      { star:5, name:'Death Bringer', icon:'☠️', req:{level:28, mat:'sovereign_shard'}, bonus:{agi:18,crit:20} },
+      { star:6, name:'Reaper', icon:'⚰️', req:{level:40, mat:'gate_core'}, bonus:{agi:30,crit:35,dodge:25}, awakened:true },
+    ],
+    baseStats:{ str:4, agi:10, int:3, vit:3, atk:10, def:4, matk:2, crit:12, dodge:10 }
+  },
+  archer: {
+    name:'Archer', icon:'🏹', desc:'Serangan jarak jauh. CRIT tinggi.',
+    stars:[
+      { star:1, name:'Archer', icon:'🏹' },
+      { star:2, name:'Sniper', icon:'🎯', req:{level:5, mat:'beast_core'}, bonus:{agi:5,crit:10} },
+      { star:3, name:'Eagle Eye', icon:'🦅', req:{level:10, mat:'wind_essence'}, bonus:{agi:8,atk:8,crit:8} },
+      { star:4, name:'Storm Arrow', icon:'⚡', req:{level:18, mat:'dungeon_crystal'}, bonus:{agi:12,atk:15} },
+      { star:5, name:'Divine Archer', icon:'✨', req:{level:28, mat:'sovereign_shard'}, bonus:{agi:18,crit:25} },
+      { star:6, name:'Arrow God', icon:'🌠', req:{level:40, mat:'gate_core'}, bonus:{agi:28,atk:30,crit:40}, awakened:true },
+    ],
+    baseStats:{ str:3, agi:10, int:4, vit:3, atk:11, def:3, matk:2, crit:10, dodge:8 }
+  },
+  mage: {
+    name:'Mage', icon:'🔮', desc:'Magic power masif. MATK dewa.',
+    stars:[
+      { star:1, name:'Mage', icon:'🔮' },
+      { star:2, name:'Elementalist', icon:'🌊', req:{level:5, mat:'mana_crystal'}, bonus:{int:6,matk:8} },
+      { star:3, name:'Arcane Lord', icon:'📜', req:{level:10, mat:'arcane_fragment'}, bonus:{int:10,matk:14} },
+      { star:4, name:'Void Mage', icon:'🌀', req:{level:18, mat:'dungeon_crystal'}, bonus:{int:15,matk:20} },
+      { star:5, name:'Calamity', icon:'☄️', req:{level:28, mat:'sovereign_shard'}, bonus:{int:22,matk:30} },
+      { star:6, name:'World Ender', icon:'💫', req:{level:40, mat:'gate_core'}, bonus:{int:35,matk:50}, awakened:true },
+    ],
+    baseStats:{ str:1, agi:4, int:12, vit:3, atk:4, def:3, matk:18 }
+  },
+  healer: {
+    name:'Healer', icon:'💊', desc:'Support & heal. Susah mati.',
+    stars:[
+      { star:1, name:'Healer', icon:'💊' },
+      { star:2, name:'Cleric', icon:'✝️', req:{level:5, mat:'holy_water'}, bonus:{int:4,vit:5,matk:6} },
+      { star:3, name:'Saint', icon:'😇', req:{level:10, mat:'divine_fragment'}, bonus:{int:7,vit:8,matk:10} },
+      { star:4, name:'Holy Sovereign', icon:'👼', req:{level:18, mat:'dungeon_crystal'}, bonus:{int:12,vit:12,matk:16} },
+      { star:5, name:'Miracle', icon:'🌟', req:{level:28, mat:'sovereign_shard'}, bonus:{int:18,vit:18,matk:24} },
+      { star:6, name:"God's Hand", icon:'🙏', req:{level:40, mat:'gate_core'}, bonus:{int:28,vit:28,matk:38}, awakened:true },
+    ],
+    baseStats:{ str:2, agi:4, int:10, vit:8, atk:5, def:7, matk:14 }
+  },
+  summoner: {
+    name:'Summoner', icon:'👾', desc:'Summon shadow army. Unik & kuat.',
+    stars:[
+      { star:1, name:'Summoner', icon:'👾' },
+      { star:2, name:'Beast Tamer', icon:'🐺', req:{level:5, mat:'beast_core'}, bonus:{int:4,str:3,vit:3} },
+      { star:3, name:'Monarch', icon:'🦁', req:{level:10, mat:'shadow_essence'}, bonus:{int:7,str:5,vit:5} },
+      { star:4, name:'Plague Lord', icon:'🦇', req:{level:18, mat:'dungeon_crystal'}, bonus:{int:12,str:8,vit:8} },
+      { star:5, name:'Apostle', icon:'🌑', req:{level:28, mat:'sovereign_shard'}, bonus:{int:18,str:12,vit:12} },
+      { star:6, name:'Shadow Monarch', icon:'👁️‍🗨️', req:{level:40, mat:'gate_core'}, bonus:{int:28,str:20,vit:20}, awakened:true },
+    ],
+    baseStats:{ str:4, agi:5, int:9, vit:6, atk:7, def:6, matk:13 }
+  },
+  irregular: {
+    name:'Irregular', icon:'❓', desc:'Tidak terdeteksi sistem. Copy & evolve class lain.',
+    stars:[
+      { star:1, name:'Irregular', icon:'❓' },
+      { star:2, name:'Irregular+', icon:'⁉️', req:{level:8, mat:'contract_fragment'}, bonus:{str:3,agi:3,int:3,vit:3} },
+      { star:3, name:'Anomaly', icon:'🔰', req:{level:15, mat:'void_crystal'}, bonus:{str:5,agi:5,int:5,vit:5} },
+      { star:4, name:'Override', icon:'⚙️', req:{level:25, mat:'dungeon_crystal'}, bonus:{str:8,agi:8,int:8,vit:8} },
+      { star:5, name:'Singularity', icon:'🌐', req:{level:35, mat:'sovereign_shard'}, bonus:{str:14,agi:14,int:14,vit:14} },
+      { star:6, name:'ZERO', icon:'0️⃣', req:{level:45, mat:'gate_core'}, bonus:{str:25,agi:25,int:25,vit:25}, awakened:true },
+    ],
+    baseStats:{ str:5, agi:5, int:5, vit:5, atk:8, def:6, matk:8 }
+  }
+};
+
+const MAT_NAMES = {
+  beast_core:'Beast Core', shadow_essence:'Shadow Essence', mana_crystal:'Mana Crystal',
+  holy_water:'Holy Water', wind_essence:'Wind Essence', contract_fragment:'Contract Fragment',
+  steel_fragment:'Steel Fragment', arcane_fragment:'Arcane Fragment', divine_fragment:'Divine Fragment',
+  void_crystal:'Void Crystal', dungeon_crystal:'Dungeon Crystal',
+  sovereign_shard:'Sovereign Shard', gate_core:'Gate Core'
+};
+
+const ITEMS = {
+  hp_potion:    { name:'HP Potion',       icon:'🧪', desc:'Restore 40 HP.',      type:'consumable', effect:{hp:40},      rarity:'common',   buy:30,  sell:12 },
+  mp_potion:    { name:'MP Potion',       icon:'💧', desc:'Restore 25 MP.',      type:'consumable', effect:{mp:25},      rarity:'common',   buy:35,  sell:15 },
+  elixir:       { name:'Elixir',          icon:'✨', desc:'Restore 80 HP & 40 MP.', type:'consumable', effect:{hp:80,mp:40}, rarity:'uncommon', buy:100, sell:45 },
+  antidote:     { name:'Antidote',        icon:'🌿', desc:'Cure poison.',        type:'consumable', effect:{status:'cure'},rarity:'common',   buy:25,  sell:10 },
+  // weapons
+  iron_dagger:  { name:'Iron Dagger',     icon:'🗡️', desc:'Fast strikes.',       type:'weapon', stat:{atk:7,crit:5},  rarity:'common',   buy:60,  sell:22 },
+  short_bow:    { name:'Short Bow',       icon:'🏹', desc:'Basic ranged.',       type:'weapon', stat:{atk:8,crit:6},  rarity:'common',   buy:65,  sell:24 },
+  oak_staff:    { name:'Oak Staff',       icon:'🪄', desc:'Amplifies magic.',    type:'weapon', stat:{matk:12},        rarity:'common',   buy:70,  sell:26 },
+  iron_sword:   { name:'Iron Sword',      icon:'⚔️', desc:'Balanced blade.',     type:'weapon', stat:{atk:10},        rarity:'common',   buy:60,  sell:22 },
+  beast_claw:   { name:'Beast Claw',      icon:'🐾', desc:'Torn from a dungeon beast.', type:'weapon', stat:{atk:14,crit:8}, rarity:'uncommon', buy:0, sell:55 },
+  void_blade:   { name:'Void Blade',      icon:'🌑', desc:'Blade forged in void.', type:'weapon', stat:{atk:20,crit:15}, rarity:'rare',   buy:0,   sell:120 },
+  // armor
+  leather_vest: { name:'Leather Vest',    icon:'🦺', desc:'Light protection.',   type:'armor', stat:{def:6},          rarity:'common',   buy:50,  sell:18 },
+  chain_armor:  { name:'Chain Armor',     icon:'🛡️', desc:'Medium defense.',     type:'armor', stat:{def:12},         rarity:'uncommon', buy:0,   sell:55 },
+  // materials
+  beast_core:        { name:'Beast Core',        icon:'💠', desc:'Material upgrade class.', type:'material', rarity:'common', buy:0, sell:20 },
+  shadow_essence:    { name:'Shadow Essence',    icon:'🌑', desc:'Material upgrade class.', type:'material', rarity:'uncommon', buy:0, sell:35 },
+  mana_crystal:      { name:'Mana Crystal',      icon:'🔷', desc:'Material upgrade class.', type:'material', rarity:'common', buy:0, sell:20 },
+  holy_water:        { name:'Holy Water',         icon:'💧', desc:'Material upgrade class.', type:'material', rarity:'common', buy:0, sell:20 },
+  wind_essence:      { name:'Wind Essence',      icon:'🌬️', desc:'Material upgrade class.', type:'material', rarity:'uncommon', buy:0, sell:35 },
+  contract_fragment: { name:'Contract Fragment', icon:'📜', desc:'Material upgrade class.', type:'material', rarity:'rare', buy:0, sell:80 },
+  steel_fragment:    { name:'Steel Fragment',    icon:'⚙️', desc:'Material upgrade class.', type:'material', rarity:'uncommon', buy:0, sell:35 },
+  arcane_fragment:   { name:'Arcane Fragment',   icon:'🌀', desc:'Material upgrade class.', type:'material', rarity:'uncommon', buy:0, sell:35 },
+  divine_fragment:   { name:'Divine Fragment',   icon:'✝️', desc:'Material upgrade class.', type:'material', rarity:'uncommon', buy:0, sell:35 },
+  void_crystal:      { name:'Void Crystal',      icon:'🔮', desc:'Material upgrade class.', type:'material', rarity:'rare', buy:0, sell:80 },
+  dungeon_crystal:   { name:'Dungeon Crystal',   icon:'💎', desc:'Material upgrade class — rank A+.', type:'material', rarity:'epic', buy:0, sell:200 },
+  sovereign_shard:   { name:'Sovereign Shard',   icon:'👑', desc:'Material upgrade class — drop dari Sovereign.', type:'material', rarity:'legendary', buy:0, sell:800 },
+  gate_core:         { name:'Gate Core',         icon:'🌀', desc:'Core dari Gate Zero sendiri.', type:'material', rarity:'legendary', buy:0, sell:0 },
+  // key
+  black_keystone:    { name:'Black Keystone',    icon:'🗝️', desc:'Kunci Gate yang tidak terdaftar.', type:'key', rarity:'epic', buy:0, sell:0 },
+  blank_contract:    { name:'Blank Contract',    icon:'📋', desc:'Kontrak yang belum ditandatangani siapapun.', type:'key', rarity:'legendary', buy:0, sell:0 },
+};
+
+const NPCS = [
+  { id:'kira',  name:'Kira Yoon',   gender:'f', color:'#38bdf8', initial:'K', role:'Hunter — Saint Rank',       desc:'Top 10 healer dunia yang sengaja turun pangkat. Dingin di luar, obsesif di dalam.',    class:'healer'  },
+  { id:'ren',   name:'Ren Ashford', gender:'m', color:'#f97316', initial:'R', role:'Hunter — Battle King Rank', desc:'Legenda yang dianggap pensiun. Sarkastis, blak-blakan, tapi paling loyal.',          class:'warrior' },
+  { id:'nyx',   name:'Nyx',         gender:'f', color:'#a78bfa', initial:'N', role:'Shadow — Erebus',           desc:'Nama aslinya tidak ada di database manapun. Berbahaya, tapi punya alasan sendiri.', class:'thief'   },
+  { id:'lance', name:'Lance Varro', gender:'m', color:'#34d399', initial:'L', role:'Hunter — Storm Arrow Rank', desc:'Archer nomor satu Asia. Santai di permukaan, tapi selalu selangkah lebih maju.',     class:'archer'  },
+];
+
+const HUNTER_RANKS = ['F','E','D','C','B','A','S','SS','SSS'];
+
+// ============================================================
+// GAME STATE
+// ============================================================
+let G = {
+  player: null,
+  scene: 'prologue',
+  sceneStep: 0,
+  combat: null,
+  romanceFlags: { kira:0, ren:0, nyx:0, lance:0 },
+  flags: {},
+  tab: 'story',
+  dungeonLog: [],
+};
+
+function makePlayer(name, classId, gender) {
+  const cp = CLASS_PATHS[classId];
+  const bs = {...cp.baseStats};
+  const maxHp = 100 + bs.vit * 5;
+  const maxMp = 50 + (bs.int||0) * 3;
+  const startWeap = classId==='thief'?'iron_dagger':classId==='archer'?'short_bow':classId==='mage'||classId==='healer'?'oak_staff':classId==='irregular'?'iron_dagger':'iron_sword';
+
+  return {
+    name, class: classId, gender: gender||'m',
+    star: 1, starName: cp.stars[0].name, starIcon: cp.stars[0].icon,
+    hunterRank: 'F',
+    level: 1, xp: 0, xpNext: 100,
+    hp: maxHp, maxHp,
+    mp: maxMp, maxMp,
+    gold: 80,
+    str: bs.str, agi: bs.agi, int: bs.int||0, vit: bs.vit,
+    atk: bs.atk, def: bs.def, matk: bs.matk||0,
+    crit: bs.crit||5, dodge: bs.dodge||3,
+    statPoints: 0,
+    equipped: { weapon: startWeap, armor: 'leather_vest' },
+    inventory: [
+      { id:'hp_potion', qty:3 },
+      { id:'mp_potion', qty:2 },
+      { id: startWeap, qty:1 },
+      { id:'leather_vest', qty:1 },
+    ],
+    materials: {},
+  };
+}
+
+// ============================================================
+// SCENES
+// ============================================================
+const SCENES = {
+
+  // ---- PROLOGUE ----
+  prologue: [{
+    loc:'Gate Rank C — Interior',
+    text:`<div class="sys-msg">[ HUNTER SYSTEM — AKTIF ]<br>Nama: ??? | Rank: F | Class: —</div>
+    Kamu masuk sendirian. Gate rank C — normalnya butuh minimal 5 orang.<br><br>
+    Party-mu kabur tepat sebelum pintu tertutup. Kata terakhir mereka:<br>
+    <em>"Maaf ya. Kamu paling lemah sih, kayaknya gak ngaruh juga."</em><br><br>
+    Pintu Gate menutup. Tidak ada jalan keluar selain maju.`,
+    choices:[
+      { text:'Maju. Tidak ada pilihan lain.', next:'prologue_explore', icon:'▶' },
+      { text:'Cek kondisi dulu sebelum bergerak.', next:'prologue_check', icon:'◈' },
+    ]
+  }],
+
+  prologue_check: [{
+    loc:'Gate Rank C — Koridor Pertama',
+    text:`HP penuh. MP penuh. Tapi tetap saja — rank F di dalam Gate C itu hampir pasti mati.<br><br>
+    <div class="sys-msg">[ SISTEM: PERINGATAN ]<br>Rank hunter tidak sesuai Gate rank.<br>Estimasi survival: &lt;20%<br>Disarankan mundur. (Tidak ada jalur mundur tersedia.)</div>
+    Tidak ada pilihan. Kamu mulai bergerak.`,
+    choices:[
+      { text:'Masuk lebih dalam.', next:'prologue_explore', icon:'▶' },
+    ]
+  }],
+
+  prologue_explore: [{
+    loc:'Gate Rank C — Ruang Tengah',
+    text:`Koridor panjang. Monster mulai bermunculan di kedua sisi — tapi semuanya berhenti.<br><br>
+    Mereka mundur.<br><br>
+    Bukan karena takut — lebih seperti... menghindar. Ini belum pernah terjadi pada hunter rank F manapun.<br><br>
+    Di ujung koridor ada pintu batu yang tidak ada di peta resmi Gate ini.`,
+    choices:[
+      { text:'Masuki pintu yang tidak ada di peta itu.', next:'prologue_room', icon:'🚪' },
+      { text:'Abaikan — langsung cari boss Gate.', next:'prologue_boss_path', icon:'⚔️' },
+    ]
+  }],
+
+  prologue_boss_path: [{
+    loc:'Gate Rank C — Arena Boss',
+    text:`Kamu lanjut maju melewati koridor utama. Di ruang paling dalam, Gate boss sudah menunggu — Iron Golem, kelas C.<br><br>
+    Ukurannya tiga kali tubuhmu. Matanya menyala merah.<br><br>
+    <div class="sys-msg">[ COMBAT INITIATED ]</div>`,
+    choices:[
+      { text:'⚔️ Lawan Golem! (Combat)', next:'combat_prologue_boss', type:'combat', icon:'⚔️' },
+    ]
+  }],
+
+  combat_prologue_boss:[{ combat:true }],
+
+  prologue_room: [{
+    loc:'Gate Rank C — Ruang Tersembunyi',
+    text:`Ruangan berbentuk lingkaran. Sepi. Tidak ada monster, tidak ada item biasa.<br><br>
+    Di tengah ruangan — sebuah panel batu gelap menyala redup, biru pucat. Di atasnya ada selembar perkamen.<br><br>
+    <div class="sys-msg">[ SISTEM TIDAK DIKENAL TERDETEKSI ]<br>Bukan bagian dari Hunter Association System.<br>Origin: UNKNOWN ]</div>`,
+    choices:[
+      { text:'Ambil dan baca perkamennya.', next:'contract_read', icon:'📜' },
+      { text:'Jangan sentuh dulu — terlalu mencurigakan.', next:'contract_refuse', icon:'⚠️' },
+    ]
+  }],
+
+  contract_refuse: [{
+    loc:'Gate Rank C — Ruang Tersembunyi',
+    text:`Kamu mundur selangkah. Tapi perkamen itu jatuh sendiri dari panel — dan melayang pelan ke tanganmu.<br><br>
+    Tampaknya tidak ada opsi untuk tidak membacanya.`,
+    choices:[
+      { text:'Baca.', next:'contract_read', icon:'📜' },
+    ]
+  }],
+
+  contract_read: [{
+    loc:'Gate Rank C — Ruang Tersembunyi',
+    text:`<div class="sys-msg">[ BLANK CONTRACT ]<br><br>"Kepada siapa yang menemukan ini —<br><br>Kamu bukan yang pertama membaca ini.<br>Tapi mungkin yang terakhir yang perlu.<br><br>Terima kontrak: sistem baru aktif.<br>Tolak: kamu tidak akan ingat ruangan ini."</div><br>
+    Di bagian bawah — kolom tanda tangan kosong.`,
+    onEnter(){ addItem('blank_contract',1); },
+    choices:[
+      { text:'Tandatangani.', next:'contract_accept', icon:'✍️' },
+      { text:'Simpan dulu, pikir-pikir belakangan.', next:'contract_keep', icon:'📋' },
+    ]
+  }],
+
+  contract_keep: [{
+    loc:'Gate Rank C — Ruang Tersembunyi',
+    text:`Kamu lipat perkamennya dan masukkan ke saku. Panel padam. Pintu tersembunyi menutup.<br><br>
+    Anehnya, kamu merasa ada sesuatu yang berbeda — tapi tidak bisa dijelaskan apa.`,
+    choices:[
+      { text:'Lanjut cari boss Gate.', next:'contract_accept', icon:'▶' },
+    ]
+  }],
+
+  contract_accept: [{
+    loc:'Gate Rank C — Sistem Aktif',
+    text:`<div class="sys-msg">[ KONTRAK DITERIMA ]<br>CLASS ASSIGNED: IRREGULAR<br>GATE ZERO PROTOCOL: AKTIF<br><br>"Sistem ini tidak terdaftar di Hunter Association.<br>Kamu tidak akan terdeteksi." ]</div><br>
+    Rasanya seperti sesuatu yang lama terkunci di dalam tubuhmu baru saja terbuka.<br><br>
+    Bukan seperti awakening biasa yang pernah kamu dengar dari hunter lain — ini lebih intens.<br><br>
+    Dan untuk pertama kali dalam tiga tahun jadi hunter rank F — kamu merasa <em>kuat</em>.`,
+    onEnter(){ G.flags.got_irregular = true; showToast('◈ CLASS: IRREGULAR — AKTIF'); },
+    choices:[
+      { text:'Keluar dari Gate.', next:'arc1_outside', icon:'🚪' },
+    ]
+  }],
+
+  // ---- ARC 1 ----
+  arc1_outside: [{
+    loc:'Seoul — Depan Gate',
+    text:`Gate menutup di belakangmu. Kamu keluar — sendirian, hidup, dari Gate rank C.<br><br>
+    Orang-orang di area perimeter langsung memperhatikan. Hunter rank F tidak seharusnya keluar dari sini hidup-hidup, apalagi sendirian.<br><br>
+    Sebelum kamu sempat pergi, seorang wanita dengan jaket putih dan ID Hunter Association resmi sudah berdiri di depanmu.`,
+    choices:[
+      { text:'Tunggu dia ngomong duluan.', next:'kira_first', icon:'👤' },
+      { text:'Pura-pura tidak lihat dan langsung pergi.', next:'kira_follow', icon:'🏃' },
+    ]
+  }],
+
+  kira_first: [{
+    loc:'Seoul — Depan Gate',
+    text:`<span class="npc-name">Kira Yoon</span><br>
+    <span class="npc-say">"Kamu baru keluar dari Gate C itu? Sendirian?"</span><br><br>
+    Dia scan ID Hunter-mu. Ada jeda panjang setelah dia lihat hasilnya.<br><br>
+    <span class="npc-say">"Rank F. Tapi kolom class-mu... kosong. Ini pertama kalinya aku lihat ini."</span>`,
+    choices:[
+      { text:'"Ada masalah?"', next:'kira_walk', icon:'😐' },
+      { text:'[+Kira] "Emang kelihatan aneh?"', next:'kira_walk', rom:'kira', romVal:5, icon:'💕' },
+      { text:'Abaikan dan langsung cabut.', next:'kira_follow', icon:'🚶' },
+    ]
+  }],
+
+  kira_walk: [{
+    loc:'Seoul — Jalanan Hunter District',
+    text:`<span class="npc-name">Kira</span><br>
+    <span class="npc-say">"Aku Kira Yoon. Healer, rank Saint. Aku sedang meneliti anomali sistem hunter — dan kamu baru saja jadi kasus paling menarik yang aku temukan."</span><br><br>
+    Dia jalan di sebelahmu, santai, seperti ini adalah hal yang wajar.<br><br>
+    <span class="npc-say">"Aku tidak akan paksa kamu cerita apa-apa. Tapi kalau kamu mau tau kenapa sistem-mu seperti itu — aku bisa bantu."</span>`,
+    choices:[
+      { text:'"Nanti deh. Aku perlu orientasi dulu."', next:'arc1_city', icon:'🏙️' },
+      { text:'[+Kira] "Boleh. Tapi aku yang tanya duluan."', next:'arc1_city', rom:'kira', romVal:8, icon:'💕' },
+    ]
+  }],
+
+  kira_follow: [{
+    loc:'Seoul — Jalanan',
+    text:`Kamu jalan cepat. Tapi langkah kaki tetap mengikuti.<br><br>
+    <span class="npc-name">Kira Yoon</span><br>
+    <span class="npc-say">"Hei. Aku tidak mau apa-apa. Aku cuma mau kasih lihat ini."</span><br><br>
+    Dia sodorkan scanner-nya. Di kolom class-mu — kosong. Bukan error, tapi benar-benar kosong.<br><br>
+    <span class="npc-say">"Sistem kamu tidak terbaca. Itu seharusnya tidak mungkin."</span>`,
+    choices:[
+      { text:'"Aku juga bingung."', next:'arc1_city', icon:'🤷' },
+      { text:'[+Kira] "Kamu mau bantu cari tau?"', next:'arc1_city', rom:'kira', romVal:8, icon:'💕' },
+    ]
+  }],
+
+  arc1_city: [{
+    loc:'Seoul — Hunter District',
+    text:`Hunter District — pusat aktivitas para hunter Seoul. Papan misi, kafe, toko equipment, dan mata-mata dari berbagai pihak.<br><br>
+    Sistem-mu masih tercatat rank F di database resmi. Tapi kamu sudah tahu rasanya — ini jauh berbeda dari sebelumnya.<br><br>
+    Ada beberapa hal yang bisa kamu lakukan sekarang.<br><br>
+    <div class="sys-msg">[ GRIND TERSEDIA ]<br>Gate F & E terbuka untuk misi harian.<br>Reward: XP, Gold, Material upgrade class. ]</div>`,
+    choices:[
+      { text:'◈ Ambil misi Gate F — grinding dulu.', next:'arc1_grind_hub', icon:'⚔️', type:'grind' },
+      { text:'Mampir ke kafe — ada pria familiar di sana.', next:'ren_first', icon:'☕' },
+      { text:'Ikut Kira ke lab — cari tau soal sistem.', next:'arc1_kira_system', icon:'🔬' },
+      { text:'Jalan-jalan cari info sendiri.', next:'arc1_explore_district', icon:'🏙️' },
+    ]
+  }],
+
+  arc1_explore_district: [{
+    loc:'Seoul — Hunter District',
+    text:`Kamu jalan keliling District. Ada beberapa hal yang kamu perhatikan:<br><br>
+    • Poster "WANTED" dengan gambar siluet naga — tapi bukan jenis monster biasa.<br>
+    • Obrolan dua hunter soal organisasi bernama <em>Erebus</em> yang katanya berburu hunter dengan "sistem aneh".<br>
+    • Seorang cowok tinggi dengan busur di punggung lagi latihan di area terbuka, sendiri. Gayanya terlalu rapi untuk hunter biasa.<br><br>
+    Mau dekati yang mana?`,
+    choices:[
+      { text:'Dekati cowok dengan busur itu.', next:'lance_first', icon:'🏹' },
+      { text:'Tanya lebih lanjut soal Erebus.', next:'arc1_erebus_info', icon:'👁️' },
+      { text:'Balik ke papan misi — grind dulu.', next:'arc1_grind_hub', icon:'⚔️', type:'grind' },
+    ]
+  }],
+
+  lance_first: [{
+    loc:'Hunter District — Area Latihan',
+    text:`Cowok itu sadar kamu mendekat — tapi tidak berhenti latihan. Dia lepas tiga panah sekaligus ke target 50 meter, semuanya tepat di tengah.<br><br>
+    <span class="npc-name">Lance Varro</span><br>
+    <span class="npc-say">"Oh, yang dari Gate C tadi. Aku lihat kamu keluar sendirian. Lumayan nekat."</span><br><br>
+    Dia pasang panah ke quiver-nya, santai.<br><br>
+    <span class="npc-say">"Lance Varro. Storm Arrow rank. Kedengarannya keren, tapi pada dasarnya aku cuma jago tembak dari jauh."</span>`,
+    choices:[
+      { text:'"Kamu tau soal kejadian tadi?"', next:'lance_talk', icon:'❓' },
+      { text:'[+Lance] "Tiga panah sekaligus — itu gak biasa."', next:'lance_talk', rom:'lance', romVal:8, icon:'💕' },
+    ]
+  }],
+
+  lance_talk: [{
+    loc:'Hunter District — Area Latihan',
+    text:`<span class="npc-name">Lance</span><br>
+    <span class="npc-say">"Semua orang tau. Hunter rank F keluar hidup dari Gate C — itu jadi topik seharian di District ini."</span><br><br>
+    Dia duduk di bangku dekat target, nongkrong santai.<br><br>
+    <span class="npc-say">"Aku cuma archer yang suka kerja sendiri. Tapi kalau sistem kamu se-aneh yang diomongin orang... mungkin menarik juga buat dipantau."</span><br><br>
+    <em>Dipantau, katanya. Cara yang santai untuk bilang dia tertarik.</em>`,
+    choices:[
+      { text:'"Silakan pantau. Aku tidak keberatan."', next:'arc1_city', icon:'😏' },
+      { text:'[+Lance] "Atau kamu bisa ikut langsung."', next:'arc1_city', rom:'lance', romVal:10, icon:'💕' },
+    ]
+  }],
+
+  arc1_erebus_info: [{
+    loc:'Hunter District — Lorong Kecil',
+    text:`Kamu mendekat dan dengerin obrolan dua hunter itu dari jarak aman.<br><br>
+    <em>"...Erebus itu bukan guild biasa. Mereka buru hunter dengan class yang gak terdaftar di sistem resmi."</em><br><br>
+    <em>"Kenapa?"</em><br><br>
+    <em>"Entah. Yang jelas, semua hunter yang mereka 'rekrut' — gak ada yang pernah balik normal."</em><br><br>
+    Mereka sadar ada yang dengerin dan langsung diam. Kamu pura-pura lewat.`,
+    choices:[
+      { text:'Simpan info ini dulu. Balik ke area utama.', next:'arc1_city', icon:'▶' },
+      { text:'Cari tau lebih soal Erebus — tanya Kira.', next:'arc1_kira_system', icon:'🔬' },
+    ]
+  }],
+
+  // GRIND HUB — player bisa grind berulang
+  arc1_grind_hub: [{
+    loc:'Hunter District — Papan Misi',
+    text:`Papan misi menampilkan Gate yang tersedia hari ini. Sebagai hunter terdaftar, kamu bisa ambil misi rank F dan E tanpa izin khusus.<br><br>
+    <div class="sys-msg">[ MISI TERSEDIA ]<br>▸ Gate F — Abandoned Warehouse | XP +80, Gold +60, drop: Beast Core<br>▸ Gate F — Underground Canal | XP +80, Gold +60, drop: Beast Core<br>▸ Gate E — Collapsed Station | XP +120, Gold +90, drop: Shadow Essence / Wind Essence ]</div><br>
+    Mau ambil yang mana?`,
+    choices:[
+      { text:'Gate F — Abandoned Warehouse.', next:'grind_gate_f1', icon:'⚔️', type:'grind' },
+      { text:'Gate F — Underground Canal.', next:'grind_gate_f2', icon:'⚔️', type:'grind' },
+      { text:'Gate E — Collapsed Station (lebih susah).', next:'grind_gate_e', icon:'⚔️', type:'grind' },
+      { text:'Sudah cukup grind. Balik ke District.', next:'arc1_city', icon:'▶' },
+    ]
+  }],
+
+  grind_gate_f1: [{
+    loc:'Gate F — Abandoned Warehouse',
+    text:`Monster-monster rank F berhamburan begitu kamu masuk — tapi tumbang lebih cepat dari ekspektasi. Sistem baru ini bukan lelucon.<br><br>
+    <div class="sys-msg">[ GATE F CLEARED ]<br>XP +80 | Gold +60 ]</div>`,
+    onEnter(){
+      gainXP(80, true); G.player.gold += 60;
+      addMat('beast_core', 1); updateHUD();
+      showToast('Gate F Clear! +80 XP, +60 Gold, Beast Core x1');
+    },
+    choices:[
+      { text:'Ambil misi lagi.', next:'arc1_grind_hub', icon:'▶', type:'grind' },
+      { text:'Balik ke District — sudah cukup.', next:'arc1_city', icon:'🏙️' },
+    ]
+  }],
+
+  grind_gate_f2: [{
+    loc:'Gate F — Underground Canal',
+    text:`Gate di bawah tanah — gelap dan lembab. Monster-nya sedikit lebih agresif, tapi kamu handle dengan bersih.<br><br>
+    Di sudut ruang boss ada loker tua yang kamu buka — ada item di dalam.<br><br>
+    <div class="sys-msg">[ GATE F CLEARED ]<br>XP +80 | Gold +60 | Bonus: HP Potion x1 ]</div>`,
+    onEnter(){
+      gainXP(80, true); G.player.gold += 60;
+      addMat('beast_core', 1); addItem('hp_potion', 1); updateHUD();
+      showToast('Gate F Clear! +80 XP, +60 Gold, bonus HP Potion!');
+    },
+    choices:[
+      { text:'Ambil misi lagi.', next:'arc1_grind_hub', icon:'▶', type:'grind' },
+      { text:'Balik ke District.', next:'arc1_city', icon:'🏙️' },
+    ]
+  }],
+
+  grind_gate_e: [{
+    loc:'Gate E — Collapsed Station',
+    text:`Gate E level kesulitannya naik signifikan. Kamu sempat terpojok dua kali — tapi berhasil balik momentum.<br><br>
+    Boss-nya, serigala besar berwarna hitam, drop sesuatu yang menarik sebelum hancur.<br><br>
+    <div class="sys-msg">[ GATE E CLEARED ]<br>XP +120 | Gold +90 | Drop: Material ]</div>`,
+    onEnter(){
+      gainXP(120, true); G.player.gold += 90;
+      const mat = Math.random() > 0.5 ? 'shadow_essence' : 'wind_essence';
+      addMat(mat, 1); updateHUD();
+      showToast(`Gate E Clear! +120 XP, +90 Gold, ${MAT_NAMES[mat]}!`);
+    },
+    choices:[
+      { text:'Ambil misi lagi.', next:'arc1_grind_hub', icon:'▶', type:'grind' },
+      { text:'Balik ke District — istirahat dulu.', next:'arc1_city', icon:'🏙️' },
+    ]
+  }],
+
+  ren_first: [{
+    loc:'Hunter District — Kafe Sudut',
+    text:`Di pojok kafe yang paling sepi, ada pria besar dengan jaket kulit dan scar panjang di pipi kirinya. Dia duduk sambil menatap kopinya yang sudah pasti sudah dingin.<br><br>
+    Wajahnya familiar — poster lama di kantor Association. Mantan rank Battle King. Katanya sudah pensiun.<br><br>
+    Dia tidak lirik kamu — tapi langsung ngomong begitu kamu lewat di dekatnya.`,
+    choices:[
+      { text:'Duduk dan dengerin.', next:'ren_intro', icon:'☕' },
+      { text:'"Siapa kamu?"', next:'ren_intro', icon:'❓' },
+      { text:'[+Ren] Duduk tanpa banyak bicara.', next:'ren_intro', rom:'ren', romVal:8, icon:'💕' },
+    ]
+  }],
+
+  ren_intro: [{
+    loc:'Hunter District — Kafe Sudut',
+    text:`<span class="npc-name">Ren Ashford</span><br>
+    <span class="npc-say">"Ren Ashford. Mantan Battle King rank. Sekarang — resminya pensiun, faktanya tidak."</span><br><br>
+    Dia dorong cangkir kopi kosong ke samping.<br><br>
+    <span class="npc-say">"Lima tahun lalu aku masuk Gate SS dengan party delapan orang. Aku yang keluar. Sendirian. Tidak ada yang tahu apa yang ada di dalamnya — karena orang yang masuk biasanya tidak kembali untuk cerita."</span><br><br>
+    Matanya akhirnya ketemu matamu.<br><br>
+    <span class="npc-say">"Tapi aku kembali. Dan sistem-mu itu — aku pernah lihat yang mirip, sekali."</span>`,
+    choices:[
+      { text:'"Kamu lihat di mana?"', next:'ren_talk', icon:'❓' },
+      { text:'[+Ren] "Kamu baik-baik saja setelah itu?"', next:'ren_talk', rom:'ren', romVal:10, icon:'💕' },
+    ]
+  }],
+
+  ren_talk: [{
+    loc:'Hunter District — Kafe Sudut',
+    text:`<span class="npc-name">Ren</span><br>
+    <span class="npc-say">"Di dalam Gate SS itu. Salah satu anggota party-ku — sistemnya berubah tepat sebelum dia... menghilang."</span><br><br>
+    Dia berdiri, taruh uang di meja.<br><br>
+    <span class="npc-say">"Aku tidak tahu apa yang kamu temukan di dalam Gate tadi. Tapi hati-hati. Ada yang sudah pantau kamu dari sejak kamu keluar."</span><br><br>
+    Dia pergi. Tapi sebelum sampai pintu:<br><br>
+    <span class="npc-say">"Kalau butuh backup — aku di sini tiap sore."</span>`,
+    choices:[
+      { text:'Simpan info ini. Lanjutkan hari.', next:'arc1_city', icon:'▶' },
+      { text:'Pergi ke Kira — ceritakan soal Ren.', next:'arc1_kira_system', icon:'🔬' },
+    ]
+  }],
+
+  arc1_kira_system: [{
+    loc:'Hunter Association — Lab Analisis',
+    text:`Lab Kira di lantai bawah Association. Peralatan scan lebih canggih dari yang biasa dipakai di lapangan.<br><br>
+    <span class="npc-name">Kira</span><br>
+    <span class="npc-say">"Duduk. Aku perlu scan ulang sistem-mu dengan alat yang lebih proper."</span><br><br>
+    Setelah beberapa menit:<br><br>
+    <span class="npc-say">"Ini bukan bug. Sistem kamu benar-benar berbeda dari protokol Association. Ini seperti... layer kedua di atas sistem normal. Aku belum pernah lihat ini."</span><br><br>
+    Alarm berbunyi — notifikasi Gate darurat masuk. Rank B. Di pusat kota.`,
+    choices:[
+      { text:'Pergi ke Gate B — ini kesempatan.', next:'arc1_gate_b_approach', icon:'🚨' },
+      { text:'[+Kira] "Kamu ikut?"', next:'arc1_gate_b_approach', rom:'kira', romVal:10, icon:'💕' },
+    ]
+  }],
+
+  arc1_gate_b_approach: [{
+    loc:'Seoul — Pusat Kota, Lokasi Gate B',
+    text:`Gate rank B muncul di tengah kawasan bisnis. Association langsung kirim tim A-rank — respons cepat, profesional.<br><br>
+    Kamu ikut sebagai bagian dari crowd yang diizinkan masuk perimeter. Kira ada di tim medis standby. Ren, entah kenapa, juga ada di sana — santai, tangan di saku.<br><br>
+    Tim A-rank masuk. Lima menit pertama aman. Lalu — senyap total.<br><br>
+    Tiga menit kemudian, dua hunter A-rank terpental keluar dari Gate dalam kondisi tidak sadarkan diri.`,
+    choices:[
+      { text:'Masuk ke dalam Gate — bantu tim.', next:'arc1_association', icon:'⚔️' },
+      { text:'Tunggu dulu — ini tidak normal.', next:'arc1_wait_assess', icon:'👁️' },
+    ]
+  }],
+
+  arc1_wait_assess: [{
+    loc:'Seoul — Perimeter Gate B',
+    text:`Kamu tahan diri. Sambil pantau situasi, Ren muncul di sebelahmu.<br><br>
+    <span class="npc-name">Ren</span><br>
+    <span class="npc-say">"Pola serangannya terlalu presisi. Itu bukan monster biasa. Ada yang kendalikan serangan dari dalam."</span><br><br>
+    <span class="npc-name">Kira</span> (dari belakang)<br>
+    <span class="npc-say">"Hunter Association kirim sinyal darurat. Semua yang tersisa harus mundur kecuali ada yang mau masuk sukarela."</span><br><br>
+    Keduanya lihat ke arahmu.`,
+    choices:[
+      { text:'Masuk. Kamu yang paling aneh di sini — mungkin itu justru kelebihannya.', next:'arc1_association', icon:'⚔️' },
+    ]
+  }],
+
+  arc1_association: [{
+    loc:'Gate Rank B — Interior',
+    text:`Di dalam Gate, situasinya jelas — tim A-rank tumbang semua, tersebar di lantai tapi masih bernapas. Ada yang lumpuhkan mereka, bukan bunuh.<br><br>
+    Di tengah ruangan, satu sosok berdiri. Pakaian hitam, masker, tidak ada ID hunter manapun.<br><br>
+    <div class="sys-msg">[ ANOMALI TERDETEKSI ]<br>Target: Hunter dengan sistem tidak terdaftar.<br>Pengirim: EREBUS ]</div><br>
+    Sosok itu noleh ke arahmu.`,
+    choices:[
+      { text:'⚔️ Hadapi duluan — jangan kasih kesempatan. (Combat)', next:'combat_erebus', type:'combat', icon:'⚔️' },
+      { text:'Tarik Kira & Ren ke belakang — kamu yang maju.', next:'arc1_retreat', icon:'🛡️' },
+    ]
+  }],
+
+  arc1_retreat: [{
+    loc:'Gate Rank B — Interior',
+    text:`Kamu dorong Kira dan Ren mundur dengan satu gerakan.<br><br>
+    <span class="npc-name">Ren</span><br>
+    <span class="npc-say">"Oi — kamu gila?"</span><br><br>
+    <span class="npc-name">Kira</span><br>
+    <span class="npc-say">"Biarkan."</span><br><br>
+    Ren berdebat dalam hati — tapi diam.`,
+    onEnter(){ G.romanceFlags.kira += 8; showToast('💕 Kira +8'); },
+    choices:[
+      { text:'⚔️ Hadapi agen Erebus!', next:'combat_erebus', type:'combat', icon:'⚔️' },
+    ]
+  }],
+
+  combat_erebus: [{ combat:true }],
+
+  arc2_nyx_intro: [{
+    loc:'Gate Rank B — Pasca Combat',
+    text:`Agen Erebus itu jatuh — tapi tidak pingsan. Dia angkat tangan, perlahan.<br><br>
+    Masker dilepas. Di baliknya — wanita, tampak seusia denganmu. Ekspresinya datar, tidak takut sama sekali.<br><br>
+    <span class="npc-name">Nyx</span><br>
+    <span class="npc-say">"Kamu lebih kuat dari data yang kami punya. Oke. Aku bukan di sini untuk bunuh kamu — aku di sini untuk nilai kamu."</span><br><br>
+    <span class="npc-say">"Dan hasilnya: lulus."</span>`,
+    choices:[
+      { text:'"Nilai untuk apa?"', next:'arc2_nyx_explain', icon:'❓' },
+      { text:'[+Nyx] "Siapa kamu sebenarnya?"', next:'arc2_nyx_explain', rom:'nyx', romVal:10, icon:'💕' },
+      { text:'Serang lagi — belum percaya.', next:'arc2_nyx_fight', icon:'⚔️', type:'combat' },
+    ]
+  }],
+
+  arc2_nyx_fight: [{
+    loc:'Gate Rank B',
+    text:`Kamu serang. Nyx hindari semua serangan tanpa balas — bergerak seperti tidak punya berat.<br><br>
+    <span class="npc-name">Nyx</span><br>
+    <span class="npc-say">"Aku bisa bunuh kamu dari tadi kalau mau. Fakta kamu masih berdiri itu jawabannya."</span><br><br>
+    Dia satu langkah mundur — dan menghilang ke dalam bayangan dinding. Benar-benar hilang.`,
+    choices:[
+      { text:'Biarkan pergi.', next:'arc2_nyx_explain', icon:'👁️' },
+    ]
+  }],
+
+  arc2_nyx_explain: [{
+    loc:'Gate Rank B — Pasca Combat',
+    text:`<span class="npc-name">Nyx</span><br>
+    <span class="npc-say">"Erebus adalah organisasi yang berkepentingan dengan Gate — bukan dari sisi Association. Mereka tahu ada sesuatu di balik Gate SS yang Association tutup-tutupi."</span><br><br>
+    <span class="npc-say">"Sistem kamu itu — Irregular — satu-satunya jenis yang bisa masuk Gate SS dan keluar. Mereka butuh kamu untuk buktikan teori mereka."</span><br><br>
+    Dia berdiri, masker ditaruh di saku.<br><br>
+    <span class="npc-say">"Aku Nyx. Itu cukup untuk sekarang. Kalau mau dengar lebih — aku akan cari kamu."</span>`,
+    choices:[
+      { text:'Biarkan dia pergi.', next:'arc2_party_debrief', icon:'▶' },
+      { text:'[+Nyx] "Tunggu — nomor kamu ada?"', next:'arc2_party_debrief', rom:'nyx', romVal:8, icon:'💕' },
+    ]
+  }],
+
+  arc2_party_debrief: [{
+    loc:'Seoul — Kafe Dekat Gate B',
+    text:`Setelah keluar, kalian bertiga duduk di kafe terdekat. Kira, Ren, dan kamu.<br><br>
+    <span class="npc-name">Kira</span><br>
+    <span class="npc-say">"Erebus. Aku sudah dengar nama itu sebelumnya — dalam konteks penelitian yang diklasifikasi."</span><br><br>
+    <span class="npc-name">Ren</span><br>
+    <span class="npc-say">"Kalau mereka sudah pantau kamu — kamu tidak aman jalan sendirian."</span><br><br>
+    Tidak ada yang bilang apa-apa soal "bergabung". Tapi jelas ketiganya sudah implisit sepakat untuk tidak meninggalkan satu sama lain setelah ini.`,
+    choices:[
+      { text:'Lanjutkan grind — perlu lebih kuat sebelum apapun.', next:'arc2_grind_hub', icon:'⚔️', type:'grind' },
+      { text:'Nyx bilang dia akan cari kamu — tunggu saja.', next:'arc2_main', icon:'⏳' },
+    ]
+  }],
+
+  // ARC 2 GRIND
+  arc2_grind_hub: [{
+    loc:'Hunter District — Papan Misi',
+    text:`Sekarang Gate rank D dan C terbuka. Reward lebih besar — tapi risikonya juga naik.<br><br>
+    <div class="sys-msg">[ MISI TERSEDIA ]<br>▸ Gate D — Submerged Mall | XP +160, Gold +120, drop: Steel Fragment / Mana Crystal<br>▸ Gate D — Abandoned Hospital | XP +160, Gold +120, drop: Arcane Fragment / Divine Fragment<br>▸ Gate C — Underground Complex | XP +250, Gold +180, drop: Void Crystal ]</div>`,
+    choices:[
+      { text:'Gate D — Submerged Mall.', next:'grind_gate_d1', icon:'⚔️', type:'grind' },
+      { text:'Gate D — Abandoned Hospital.', next:'grind_gate_d2', icon:'⚔️', type:'grind' },
+      { text:'Gate C — Underground Complex (keras).', next:'grind_gate_c', icon:'⚔️', type:'grind' },
+      { text:'Sudah cukup, balik ke story.', next:'arc2_main', icon:'▶' },
+    ]
+  }],
+
+  grind_gate_d1: [{
+    loc:'Gate D — Submerged Mall',
+    text:`Mall yang terendam air setinggi lutut. Monster aquatic yang cepat — kamu adaptasi dengan cepat juga.<br><br>
+    <div class="sys-msg">[ GATE D CLEARED ]<br>XP +160 | Gold +120 ]</div>`,
+    onEnter(){
+      gainXP(160, true); G.player.gold += 120;
+      const mat = Math.random() > 0.5 ? 'steel_fragment' : 'mana_crystal';
+      addMat(mat, 1); updateHUD();
+      showToast(`Gate D Clear! +160 XP, +120 Gold, ${MAT_NAMES[mat]}!`);
+    },
+    choices:[
+      { text:'Ambil misi lagi.', next:'arc2_grind_hub', icon:'▶', type:'grind' },
+      { text:'Balik ke story.', next:'arc2_main', icon:'🏙️' },
+    ]
+  }],
+
+  grind_gate_d2: [{
+    loc:'Gate D — Abandoned Hospital',
+    text:`Rumah sakit tua yang gelap. Jenis monster paling tidak menyenangkan — tapi kamu bersihkan lantai per lantai.<br><br>
+    Di basement, ada ruang tersegel yang kamu buka paksa. Ada item di dalam.<br><br>
+    <div class="sys-msg">[ GATE D CLEARED ]<br>XP +160 | Gold +120 | Bonus: MP Potion x2 ]</div>`,
+    onEnter(){
+      gainXP(160, true); G.player.gold += 120;
+      const mat = Math.random() > 0.5 ? 'arcane_fragment' : 'divine_fragment';
+      addMat(mat, 1); addItem('mp_potion', 2); updateHUD();
+      showToast(`Gate D Clear! +160 XP, +120 Gold, ${MAT_NAMES[mat]}!`);
+    },
+    choices:[
+      { text:'Ambil misi lagi.', next:'arc2_grind_hub', icon:'▶', type:'grind' },
+      { text:'Balik ke story.', next:'arc2_main', icon:'🏙️' },
+    ]
+  }],
+
+  grind_gate_c: [{
+    loc:'Gate C — Underground Complex',
+    text:`Ini beda. Gate C dengan sistem-mu yang belum fully developed — kamu hampir gagal di tengah. Tapi kamu tetap selesaikan.<br><br>
+    Boss-nya drop sesuatu yang tidak biasa.<br><br>
+    <div class="sys-msg">[ GATE C CLEARED ]<br>XP +250 | Gold +180 | Drop: Void Crystal ]</div>`,
+    onEnter(){
+      gainXP(250, true); G.player.gold += 180;
+      addMat('void_crystal', 1); updateHUD();
+      showToast('Gate C Clear! +250 XP, +180 Gold, Void Crystal!');
+    },
+    choices:[
+      { text:'Ambil misi lagi.', next:'arc2_grind_hub', icon:'▶', type:'grind' },
+      { text:'Balik — ini sudah cukup untuk sekarang.', next:'arc2_main', icon:'🏙️' },
+    ]
+  }],
+
+  arc2_main: [{
+    loc:'Seoul — Safe House',
+    text:`Waktu berjalan. Kamu, Kira, Ren — dan kadang Lance yang muncul sendiri tanpa diajak — mulai punya ritme kerja yang tidak terucap.<br><br>
+    Sistem-mu berkembang dengan cara yang tidak linear. Kira dokumentasikan semuanya. Ren tidak banyak komentar tapi selalu ada kalau dibutuhkan.<br><br>
+    Lalu suatu malam, Nyx muncul — masuk lewat jendela seperti itu hal yang normal.<br><br>
+    <span class="npc-name">Nyx</span><br>
+    <span class="npc-say">"Gate SS pertama akan muncul tiga hari lagi. Aku punya koordinatnya. Erebus mau tahu apa yang ada di dalam — dan sistem kamu adalah satu-satunya cara masuk."</span>`,
+    choices:[
+      { text:'"Kenapa Erebus peduli soal Gate SS?"', next:'arc2_nyx_motive', icon:'❓' },
+      { text:'[+Nyx] "Kamu sendiri — kenapa mau bantu?"', next:'arc2_nyx_motive', rom:'nyx', romVal:12, icon:'💕' },
+      { text:'Diskusi dulu sama Kira dan Ren.', next:'arc2_team_talk', icon:'👥' },
+    ]
+  }],
+
+  arc2_nyx_motive: [{
+    loc:'Seoul — Safe House',
+    text:`<span class="npc-name">Nyx</span><br>
+    <span class="npc-say">"Erebus percaya Association tahu lebih banyak tentang Gate SS daripada yang mereka bilang ke publik. Dan mereka tidak salah."</span><br><br>
+    Dia duduk di tepi jendela, santai.<br><br>
+    <span class="npc-say">"Aku? Aku punya alasan sendiri. Tapi itu urusan belakangan."</span>`,
+    choices:[
+      { text:'Setuju — masuk Gate SS.', next:'arc2_prep', icon:'▶' },
+      { text:'Ajak Kira dan Ren dulu.', next:'arc2_team_talk', icon:'👥' },
+    ]
+  }],
+
+  arc2_team_talk: [{
+    loc:'Seoul — Safe House',
+    text:`Kamu kumpulkan semua orang. Kira, Ren, Nyx satu ruangan — pertama kalinya.<br><br>
+    <span class="npc-name">Ren</span><br>
+    <span class="npc-say">"Gate SS. Aku masuk sana sekali. Tidak ada monster normal di dalam. Yang ada adalah sesuatu yang lebih... terkontrol."</span><br><br>
+    <span class="npc-name">Kira</span><br>
+    <span class="npc-say">"Ren — kamu tidak pernah cerita ini ke siapapun sebelumnya."</span><br><br>
+    <span class="npc-name">Ren</span><br>
+    <span class="npc-say">"Karena tidak ada yang perlu tahu. Sampai sekarang."</span>`,
+    onEnter(){ G.romanceFlags.ren += 8; G.romanceFlags.kira += 5; showToast('💕 Ren +8, Kira +5'); },
+    choices:[
+      { text:'[+Ren] "Cerita lebih — apa yang kamu lihat di dalam?"', next:'arc2_prep', rom:'ren', romVal:12, icon:'💕' },
+      { text:'"Kalian mau ikut?"', next:'arc2_prep', icon:'👥' },
+    ]
+  }],
+
+  arc2_prep: [{
+    loc:'Seoul — Safe House',
+    text:`Tiga hari persiapan. Kira siapkan alat scan yang bisa terhubung dengan sistem Irregular-mu. Ren periksa equipment tempur. Nyx tidak banyak ngomong tapi selalu ada di briefing.<br><br>
+    Lance dengar dari somewhere dan muncul sendiri di hari H.<br><br>
+    <span class="npc-name">Lance</span><br>
+    <span class="npc-say">"Gate SS. Ini yang dimaksud menarik rupanya. Boleh ikut?"</span><br><br>
+    Tidak ada yang protes.`,
+    onEnter(){ G.romanceFlags.lance += 5; },
+    choices:[
+      { text:'Pergi ke lokasi Gate SS.', next:'arc2_revelation', icon:'🌀' },
+      { text:'Grind dulu sebelum berangkat.', next:'arc2_grind_hub', icon:'⚔️', type:'grind' },
+    ]
+  }],
+
+  arc2_revelation: [{
+    loc:'Distrik Selatan Seoul — Lokasi Gate SS',
+    text:`Gate SS berbeda secara visual dari Gate yang pernah kamu masuki. Bukan portal bercahaya — ini area kegelapan yang berdiri tegak, seperti lubang di udara.<br><br>
+    Tidak ada data interior. Scanner Association tidak bisa baca isinya.<br><br>
+    <div class="sys-msg">[ GATE RANK: SS ]<br>DATA INTERIOR: TIDAK TERSEDIA<br>SISTEM IRREGULAR: KONEKSI TERDETEKSI ]</div><br>
+    Sistem-mu bereaksi — seperti ada sinyal dari dalam yang memanggil.`,
+    choices:[
+      { text:'⚔️ Masuk langsung. (Arc 2 Boss)', next:'combat_gate_ss', type:'combat', icon:'🌀' },
+      { text:'Biarkan Kira scan dulu sebelum masuk.', next:'arc2_analyze', icon:'🔬' },
+    ]
+  }],
+
+  arc2_analyze: [{
+    loc:'Distrik Selatan Seoul — Perimeter Gate SS',
+    text:`<span class="npc-name">Kira</span><br>
+    <span class="npc-say">"Ada pola sinyal yang sama persis dengan Blank Contract-mu. Gate ini... secara harfiah merespons sistem kamu."</span><br><br>
+    <span class="npc-name">Nyx</span><br>
+    <span class="npc-say">"Makanya dari tadi aku bilang — kamu yang dipilih untuk ini."</span><br><br>
+    <span class="npc-name">Ren</span><br>
+    <span class="npc-say">"Scan selesai. Masuk sekarang — sebelum Gate ini menarik perhatian Association."</span><br><br>
+    <em>Bonus dari scan: kamu masuk dengan DEF+8.</em>`,
+    onEnter(){ G.flags.ss_analyze = true; showToast('Buff aktif: DEF+8!'); },
+    choices:[
+      { text:'⚔️ Masuk!', next:'combat_gate_ss', type:'combat', icon:'🌀' },
+    ]
+  }],
+
+  combat_gate_ss: [{ combat:true }],
+
+  arc3_inside_ss: [{
+    loc:'Gate SS — Interior',
+    text:`Di dalam tidak ada koridor, tidak ada monster yang langsung menyerang. Hanya ruang yang sangat besar — langit-langitnya penuh bintang, tapi ini bukan langit malam biasa.<br><br>
+    Di tengah ruangan ada singgasana batu. Di atasnya, seseorang duduk — bukan postur monster. Postur manusia.<br><br>
+    Dia buka matanya begitu kamu mendekat.`,
+    choices:[
+      { text:'Dekati dan tanya siapa dia.', next:'arc3_sovereign', icon:'▶' },
+      { text:'Berhenti di jarak aman — waspada.', next:'arc3_sovereign', icon:'⚔️' },
+    ]
+  }],
+
+  arc3_sovereign: [{
+    loc:'Gate SS — Singgasana',
+    text:`<span class="npc-name">??? </span><br>
+    <span class="npc-say">"Akhirnya ada yang sampai ke sini."</span><br><br>
+    Suaranya tenang — capek, tapi tenang. Seperti orang yang sudah menunggu terlalu lama.<br><br>
+    <span class="npc-say">"Aku yang membuka Gate pertama, puluhan tahun lalu. Bukan untuk menyerang — untuk mencari seseorang yang bisa menggantikanku di posisi ini."</span>`,
+    choices:[
+      { text:'"Posisi apa?"', next:'arc3_truth', icon:'❓' },
+      { text:'"Jadi selama ini Gate muncul karena kamu?"', next:'arc3_truth', icon:'😡' },
+      { text:'"Kenapa harus aku?"', next:'arc3_truth', icon:'🤔' },
+    ]
+  }],
+
+  arc3_truth: [{
+    loc:'Gate SS — Singgasana',
+    text:`<span class="npc-name">???</span><br>
+    <span class="npc-say">"Gate Zero bukan pintu invasi. Ini titik keseimbangan antara dua dimensi yang tidak boleh bertabrakan. Kalau tidak ada yang jaga dari dalam — keduanya akan saling hancurkan."</span><br><br>
+    <span class="npc-say">"Aku sudah di sini terlalu lama. Blank Contract yang kamu tanda tangani itu milikku — sengaja aku tinggalkan untuk dicari. Kamu yang menemukannya."</span><br><br>
+    <div class="sys-msg">[ GATE ZERO PROTOCOL: PHASE FINAL ]<br>[ PILIHAN BERIKUTNYA AKAN MENENTUKAN ENDING ]</div>`,
+    choices:[
+      { text:'Dengarkan sampai selesai.', next:'arc3_choice', icon:'▶' },
+    ]
+  }],
+
+  arc3_choice: [{
+    loc:'Gate SS — Singgasana',
+    text:`<span class="npc-name">???</span><br>
+    <span class="npc-say">"Ada dua pilihan. Pertama — kamu ambil kontrak ini, duduk di sini menggantikanku. Dunia aman, tapi kamu tidak bisa kembali. Kedua — kamu hancurkan Gate Zero sekarang. Semua Gate di dunia akan tutup. Tapi tanpa penjaga, dalam beberapa dekade keseimbangan akan runtuh sendiri."</span><br><br>
+    Kira, Ren, Nyx, dan Lance ada di belakangmu. Semua diam.`,
+    choices:[
+      { text:'⚔️ Hancurkan Gate Zero. (Final Boss)', next:'combat_final', type:'combat', icon:'💥' },
+      { text:'Ambil kontrak — jadi penjaga.', next:'ending_guardian', icon:'🌀' },
+      { text:'Ada opsi lain yang belum dia sebutkan.', next:'ending_true', icon:'❓' },
+    ]
+  }],
+
+  combat_final: [{ combat:true }],
+
+  ending_guardian: [{
+    loc:'Gate Zero — Singgasana',
+    text:`Kamu ambil kontrak dan tandatangani.<br><br>
+    Sosok itu — akhirnya berdiri dari singgasana untuk pertama kalinya. Dia mengangguk pelan, lalu perlahan menghilang — bukan mati, lebih seperti akhirnya bisa pergi.<br><br>
+    Gate Zero menutup dari luar. Kamu duduk di singgasana.<br><br>
+    <span class="npc-name">Ren</span> (teriakan dari luar, redup)<br>
+    <span class="npc-say">"OI! KAMU GILA?!"</span><br><br>
+    <span class="npc-name">Kira</span> (lebih pelan)<br>
+    <span class="npc-say">"Dia punya alasan."</span>`,
+    choices:[
+      { text:'Lanjut ke epilog.', next:'romance_ending', icon:'▶' },
+    ]
+  }],
+
+  ending_true: [{
+    loc:'Gate Zero — Singgasana',
+    text:`Kamu tidak langsung jawab. Ada yang mengganjal — Blank Contract yang kamu simpan waktu itu. Kamu keluarkan.<br><br>
+    Di bagian belakang — tulisan kecil yang kamu skip waktu pertama baca:<br><br>
+    <div class="sys-msg">"Kontrak ini bisa dibagi maksimal empat pihak, dengan syarat semua pihak setuju secara sadar dan sukarela."</div><br>
+    Kamu balik ke arah Kira, Ren, Nyx, Lance.`,
+    choices:[
+      { text:'Tunjukkan klausul itu ke semua orang.', next:'ending_true_2', icon:'📋' },
+    ]
+  }],
+
+  ending_true_2: [{
+    loc:'Gate Zero',
+    text:`Kira baca klausul itu — dan langsung noleh ke kamu dengan ekspresi yang susah dibaca.<br>
+    <span class="npc-name">Kira</span> <span class="npc-say">"Ini yang aku cari selama ini. Aku tidak turun pangkat karena capek — aku cari pemegang kontrak baru. Dan ternyata itu kamu."</span><br><br>
+    Ren baca. Dia taruh dokumen itu, diam sebentar.<br>
+    <span class="npc-name">Ren</span> <span class="npc-say">"Kalau kalian masuk, aku ikut. Tidak ada lagi yang aku tinggalkan sendirian."</span><br><br>
+    Nyx baca terakhir. Dia ragu — lalu tanda tangan tanpa banyak bicara.<br>
+    <span class="npc-name">Nyx</span> <span class="npc-say">"Pertama kalinya aku percaya seseorang selain diri sendiri."</span><br><br>
+    Lance angkat tangan.<br>
+    <span class="npc-name">Lance</span> <span class="npc-say">"Tunggu — aku juga ikut dong."</span>`,
+    choices:[
+      { text:'Semua tanda tangan bersama.', next:'ending_final', icon:'✍️' },
+    ]
+  }],
+
+  ending_final: [{
+    loc:'Gate Zero — Selesai',
+    text:`Lima tanda tangan. Kontrak bersinar terang — lalu pecah jadi lima bagian, satu untuk masing-masing.<br><br>
+    Gate Zero tidak menutup dan tidak hancur. Pintu itu berubah jadi sesuatu yang berbeda — bisa dimasuki, bisa dikeluar, dan dijaga dari dalam secara bergantian.<br><br>
+    Sosok di singgasana akhirnya bisa tersenyum.<br><br>
+    <span class="npc-name">???</span><br>
+    <span class="npc-say">"Ini... tidak pernah aku bayangkan. Terima kasih."</span><br><br>
+    Dia pergi.<br><br>
+    <div class="sys-msg">[ TRUE ENDING ]<br>[ GATE ZERO: GUARDIAN PROTOCOL — AKTIF ]<br>[ GUARDIAN: 5 ORANG ] ]</div>`,
+    choices:[
+      { text:'Lanjut ke epilog.', next:'romance_ending', icon:'▶' },
+    ]
+  }],
+
+  romance_ending: [{
+    loc:'Epilog — Enam Bulan Kemudian',
+    text:`Gate-gate di dunia masih muncul — tapi frekuensinya turun drastis. Tidak ada yang tau kenapa. Association punya teori sendiri yang salah semua.<br><br>
+    Sistem rank-mu masih tercatat F di database resmi. Tapi di kalangan hunter underground, namamu dikenal dengan cara yang berbeda.<br><br>
+    Kehidupan setelah ini? Tergantung hubungan yang kamu bangun selama perjalanan.`,
+    choices:[
+      { text:'Lihat ending berdasarkan hubungan terdekat.', next:'romance_branch', icon:'💕' },
+    ]
+  }],
+
+  romance_branch: [{ romanceBranch: true }],
+
+  romance_kira: [{
+    loc:'Epilog — Kira Route',
+    text:`Kira akhirnya cerita semuanya — kenapa dia turun pangkat, kenapa dia ada di depan Gate C hari itu.<br><br>
+    <span class="npc-name">Kira</span><br>
+    <span class="npc-say">"Keluargaku sudah pantau soal Blank Contract selama tiga generasi. Aku yang ditugaskan cari pemegangnya. Aku tidak nyangka pemegangnya... seperti ini."</span><br><br>
+    <em>"Seperti ini gimana?"</em><br><br>
+    <span class="npc-name">Kira</span><br>
+    <span class="npc-say">"Bikin aku lupa ini awalnya cuma tugas."</span><br><br>
+    <div class="sys-msg">[ KIRA ROUTE — CLEAR ] ]</div>`,
+    choices:[{ text:'Selesai. ◈', next:'game_over', icon:'◈' }]
+  }],
+
+  romance_ren: [{
+    loc:'Epilog — Ren Route',
+    text:`Ren akhirnya bawa kamu ke satu tempat — sebuah monumen kecil di pinggir kota. Nama-nama di sana familiar: party-nya yang hilang di Gate SS lima tahun lalu.<br><br>
+    <span class="npc-name">Ren</span><br>
+    <span class="npc-say">"Dengan kontrak baru, aku bisa masuk Gate Zero kapan pun. Mereka masih ada di dalam — jadi bayangan, tapi masih ada."</span><br><br>
+    Dia diam sebentar.<br><br>
+    <span class="npc-say">"Makasih. Beneran."</span><br><br>
+    <em>Ren Ashford tidak pernah bilang terima kasih ke siapapun. Ini pertama kalinya.</em><br><br>
+    <div class="sys-msg">[ REN ROUTE — CLEAR ] ]</div>`,
+    choices:[{ text:'Selesai. ◈', next:'game_over', icon:'◈' }]
+  }],
+
+  romance_nyx: [{
+    loc:'Epilog — Nyx Route',
+    text:`Erebus bubar dua bulan setelah Gate Zero berubah — kehilangan tujuan dan sumber daya sekaligus.<br><br>
+    Nyx datang ke tempatmu malam itu tanpa pemberitahuan. Seperti biasa.<br><br>
+    <span class="npc-name">Nyx</span><br>
+    <span class="npc-say">"Aku tidak punya tempat lagi sekarang. Erebus sudah tidak ada."</span><br><br>
+    <em>"Terus mau ke mana?"</em><br><br>
+    <span class="npc-name">Nyx</span><br>
+    <span class="npc-say">"Belum tau. Tapi... boleh di sini dulu?"</span><br><br>
+    Kamu tidak jawab verbal — kamu geser ke samping biar dia bisa duduk.<br><br>
+    <div class="sys-msg">[ NYX ROUTE — CLEAR ] ]</div>`,
+    choices:[{ text:'Selesai. ◈', next:'game_over', icon:'◈' }]
+  }],
+
+  romance_lance: [{
+    loc:'Epilog — Lance Route',
+    text:`Lance tidak pernah kelihatan overthinking apapun — dan itu juga cara dia handle semua yang terjadi. Normal saja.<br><br>
+    Suatu sore dia mampir sambil bawa dua kopi.<br><br>
+    <span class="npc-name">Lance</span><br>
+    <span class="npc-say">"Kamu tau yang paling menarik dari semua ini?"</span><br><br>
+    <em>"Apa?"</em><br><br>
+    <span class="npc-name">Lance</span><br>
+    <span class="npc-say">"Aku ikut karena penasaran. Tapi sekarang aku mau tetap ikut bukan karena itu."</span><br><br>
+    Dia taruh kopi di tanganmu dan duduk di sebelahmu tanpa tanya izin.<br><br>
+    <div class="sys-msg">[ LANCE ROUTE — CLEAR ] ]</div>`,
+    choices:[{ text:'Selesai. ◈', next:'game_over', icon:'◈' }]
+  }],
+
+  // FRIEND ROUTES (same gender)
+  friend_kira: [{
+    loc:'Epilog — Kira (Friend Route)',
+    text:`<span class="npc-name">Kira</span><br>
+    <span class="npc-say">"Kamu tau, ini pertama kalinya misi yang aku jalankan berakhir dengan orang-orangnya masih lengkap."</span><br><br>
+    <em>"Kamu terlalu serius."</em><br><br>
+    <span class="npc-say">"Aku memang serius. Tapi... terima kasih sudah bikin itu terasa sedikit lebih ringan."</span><br><br>
+    <div class="sys-msg">[ KIRA FRIEND ROUTE — CLEAR ] ]</div>`,
+    choices:[{ text:'Selesai. ◈', next:'game_over', icon:'◈' }]
+  }],
+
+  friend_ren: [{
+    loc:'Epilog — Ren (Friend Route)',
+    text:`<span class="npc-name">Ren</span><br>
+    <span class="npc-say">"Aku tidak biasa kerja sama dengan orang. Tapi kalau harus milih — aku milih tim kayak gini."</span><br><br>
+    Tidak banyak kata. Tapi dari Ren, itu sudah berarti banyak.<br><br>
+    <div class="sys-msg">[ REN FRIEND ROUTE — CLEAR ] ]</div>`,
+    choices:[{ text:'Selesai. ◈', next:'game_over', icon:'◈' }]
+  }],
+
+  friend_nyx: [{
+    loc:'Epilog — Nyx (Friend Route)',
+    text:`<span class="npc-name">Nyx</span><br>
+    <span class="npc-say">"Di Erebus, tidak ada yang namanya percaya. Semua transaksional."</span><br><br>
+    <em>"Dan sekarang?"</em><br><br>
+    <span class="npc-say">"Sekarang berbeda. Kamu orang pertama yang aku percaya bukan karena terpaksa."</span><br><br>
+    <div class="sys-msg">[ NYX FRIEND ROUTE — CLEAR ] ]</div>`,
+    choices:[{ text:'Selesai. ◈', next:'game_over', icon:'◈' }]
+  }],
+
+  friend_lance: [{
+    loc:'Epilog — Lance (Friend Route)',
+    text:`<span class="npc-name">Lance</span><br>
+    <span class="npc-say">"Jujur, aku ikut awalnya cuma penasaran. Tapi ternyata lebih seru dari yang aku kira."</span><br><br>
+    <em>"Cuma seru?"</em><br><br>
+    <span class="npc-say">"Dan... punya orang yang bisa dipercaya itu ternyata enak juga."</span><br><br>
+    Dia senyum — pertama kalinya kamu lihat dia senyum yang bukan senyum santai biasa.<br><br>
+    <div class="sys-msg">[ LANCE FRIEND ROUTE — CLEAR ] ]</div>`,
+    choices:[{ text:'Selesai. ◈', next:'game_over', icon:'◈' }]
+  }],
+
+  game_over: [{
+    loc:'GATE ZERO — CHAPTER 1 COMPLETE',
+    text:`<div class="sys-msg">[ CHAPTER 1 — SELESAI ]<br>Terima kasih sudah main Gate Zero.<br>Chapter 2 sedang dalam pengembangan. ]</div><br>
+    Progress kamu tersimpan. Kamu bisa explore menu atau mulai ulang dengan build berbeda.`,
+    choices:[
+      { text:'💾 Simpan Game', next:'game_over', icon:'💾', action:'save' },
+      { text:'📊 Lihat Stats Akhir', next:'game_over', icon:'📊', action:'stats' },
+    ]
+  }],
+};
+
+// Combat data
+const ENEMIES = {
+  prologue_boss: { name:'Iron Golem', icon:'🗿', rank:'C', hp:80, maxHp:80, atk:14, def:6, matk:0, xp:50, gold:40, loot:['beast_core','hp_potion'] },
+  erebus_hunter: { name:'Erebus Agent', icon:'🕵️', rank:'B', hp:150, maxHp:150, atk:22, def:10, matk:8, xp:100, gold:70, loot:['shadow_essence','void_crystal'] },
+  gate_ss_boss: { name:'Gate SS Sentinel', icon:'👹', rank:'SS', hp:400, maxHp:400, atk:38, def:20, matk:25, xp:300, gold:150, loot:['dungeon_crystal','sovereign_shard'] },
+  final_boss: { name:'Fractured Gate', icon:'🌀', rank:'SSS', hp:600, maxHp:600, atk:50, def:25, matk:35, xp:500, gold:300, loot:['gate_core','sovereign_shard'] },
+};
+
+const COMBAT_MAP = {
+  combat_prologue_boss: { enemy:'prologue_boss', win:'prologue_room', lose:'lose_prologue' },
+  combat_erebus: { enemy:'erebus_hunter', win:'arc2_nyx_intro', lose:'lose_erebus' },
+  combat_gate_ss: { enemy:'gate_ss_boss', win:'arc3_inside_ss', lose:'lose_gate_ss' },
+  combat_final: { enemy:'final_boss', win:'ending_guardian', lose:'lose_final' },
+};
+
+const LOSE_SCENES = {
+  lose_prologue: {
+    loc:'Gate C — Retreat',
+    text:`Iron Golem terlalu kuat. Kamu mundur — tapi berhasil keluar.<br><br><em>HP dipulihkan sebagian. Coba lagi?</em>`,
+    onEnter(){ G.player.hp=Math.max(1,Math.floor(G.player.maxHp*0.3)); updateHUD(); },
+    choices:[{ text:'Coba lagi.', next:'prologue_boss_path', icon:'⚔️' }, { text:'Masuk ruang tersembunyi.', next:'prologue_room', icon:'🚪' }]
+  },
+  lose_erebus: {
+    loc:'Gate B — Retreat',
+    text:`Erebus agent terlalu kuat. Kira menarikmu mundur dan menyembuhkan lukamu.<br><br>
+    <span class="npc-name">Kira</span><br><span class="npc-say">"Istirahat dulu."</span>`,
+    onEnter(){ G.player.hp=G.player.maxHp; G.player.mp=G.player.maxMp; updateHUD(); showToast('Kira menyembuhkanmu!'); },
+    choices:[{ text:'Coba lagi.', next:'arc1_association', icon:'⚔️' }]
+  },
+  lose_gate_ss: {
+    loc:'Gate SS — Keluar Darurat',
+    text:`Terlalu kuat. Ren menarikmu keluar paksa.<br><br>
+    <span class="npc-name">Ren</span><br><span class="npc-say">"Jangan gegabah. Grind dulu."</span>`,
+    onEnter(){ G.player.hp=G.player.maxHp; G.player.mp=G.player.maxMp; updateHUD(); },
+    choices:[{ text:'Grind lagi.', next:'arc2_main', icon:'⚔️' }]
+  },
+  lose_final: {
+    loc:'Gate Zero — Bangkit',
+    text:`Kamu jatuh — tapi Gate Zero menolak kamu mati. Kontrak masih aktif.<br><br><em>HP dipulihkan penuh.</em>`,
+    onEnter(){ G.player.hp=G.player.maxHp; G.player.mp=G.player.maxMp; updateHUD(); },
+    choices:[{ text:'Bangkit dan lawan lagi!', next:'arc3_choice', icon:'⚔️' }]
+  },
+};
+
+// ============================================================
+// CHARACTER CREATION
+// ============================================================
+let createStep = 0;
+let createData = { name:'', gender:'', class:'' };
+
+const CREATE_STEPS = [
+  { label:'IDENTITAS', dots:4 },
+  { label:'GENDER', dots:4 },
+  { label:'CLASS', dots:4 },
+  { label:'KONFIRMASI', dots:4 },
+];
+
+function startNewGame() {
+  createStep = 0; createData = { name:'', class:'' };
+  showScreen('create'); renderCreateStep();
+}
+
+function renderCreateStep() {
+  const dots = document.getElementById('step-dots');
+  dots.innerHTML = CREATE_STEPS.map((_,i)=>`<div class="step-dot ${i<createStep?'done':i===createStep?'active':''}"></div>`).join('');
+  document.querySelector('.create-header h2').textContent = `HUNTER REGISTRATION — ${CREATE_STEPS[createStep].label}`;
+
+  const body = document.getElementById('create-body');
+  const footer = document.getElementById('create-footer');
+
+  if(createStep===0) {
+    body.innerHTML = `
+      <p class="section-label">Code Name / Hunter ID</p>
+      <input class="input-field" id="name-input" placeholder="Masukkan nama hunter..." maxlength="20" value="${createData.name}">
+      <p style="color:var(--text3);font-size:13px;line-height:1.8;font-style:italic">
+        Nama ini akan dikenal di seluruh Hunter Association — dan di tempat yang jauh lebih berbahaya dari itu.
+      </p>`;
+    footer.innerHTML = `<button class="btn" onclick="createNext()">NEXT ▶</button>`;
+    setTimeout(()=>document.getElementById('name-input')?.focus(),100);
+
+  } else if(createStep===1) {
+    body.innerHTML = `
+      <p class="section-label">Pilih Gender</p>
+      <div class="card-grid">
+        <div class="select-card ${createData.gender==='m'?'selected':''}" onclick="selectGender('m')">
+          <div style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,#1e40af,#3b82f6);display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 10px;border:2px solid ${createData.gender==='m'?'var(--cyan)':'var(--border)'}">♂</div>
+          <span class="card-name">Male</span>
+          <div class="card-desc">Hunter pria. Stat awal sama, cerita sama.</div>
+        </div>
+        <div class="select-card ${createData.gender==='f'?'selected':''}" onclick="selectGender('f')">
+          <div style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,#9d174d,#ec4899);display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 10px;border:2px solid ${createData.gender==='f'?'var(--cyan)':'var(--border)'}">♀</div>
+          <span class="card-name">Female</span>
+          <div class="card-desc">Hunter wanita. Stat awal sama, cerita sama.</div>
+        </div>
+      </div>`;
+    footer.innerHTML = `<div class="btn-row"><button class="btn secondary small" onclick="createBack()">◀ BACK</button><button class="btn small" onclick="createNext()">NEXT ▶</button></div>`;
+
+  } else if(createStep===2) {
+    body.innerHTML = `
+      <p class="section-label">Pilih Class Awal</p>
+      <div class="card-grid">
+        ${Object.entries(CLASS_PATHS).map(([id,cp])=>`
+          <div class="select-card ${createData.class===id?'selected':''}" onclick="selectClass('${id}')">
+            <div class="card-icon">${cp.stars[0].icon}</div>
+            <span class="card-name">${cp.name}</span>
+            <div class="card-desc">${cp.desc}</div>
+            <div class="card-bonus">Max: ${cp.stars[5].name} ${cp.stars[5].icon}</div>
+          </div>`).join('')}
+      </div>`;
+    footer.innerHTML = `<div class="btn-row"><button class="btn secondary small" onclick="createBack()">◀ BACK</button><button class="btn small" onclick="createNext()">NEXT ▶</button></div>`;
+
+  } else {
+    const cp = CLASS_PATHS[createData.class];
+    const gIcon = createData.gender==='f' ? '♀' : '♂';
+    const gColor = createData.gender==='f' ? '#ec4899' : '#3b82f6';
+    body.innerHTML = `
+      <p class="section-label">Konfirmasi Hunter</p>
+      <div class="class-display">
+        <div style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,${gColor}33,${gColor}66);border:2px solid ${gColor};display:flex;align-items:center;justify-content:center;font-size:32px;margin:0 auto 10px">${gIcon}</div>
+        <div class="class-name-big">${createData.name||'???'}</div>
+        <div class="class-rank-line">${createData.gender==='f'?'FEMALE':'MALE'} | CLASS: ${cp?.name||'—'} | RANK: F | ★☆☆☆☆☆</div>
+      </div>
+      <div class="star-display">
+        <span class="star lit">★</span>${Array(5).fill('<span class="star dim">★</span>').join('')}
+      </div>
+      <p style="color:var(--text3);font-size:13px;line-height:1.8;text-align:center;font-style:italic">
+        Path: ${cp?.stars.map(s=>s.name).join(' → ')||'—'}
+      </p>`;
+    footer.innerHTML = `<div class="btn-row"><button class="btn secondary small" onclick="createBack()">◀ BACK</button><button class="btn small" onclick="finishCreate()">MULAI ▶</button></div>`;
+  }
+}
+
+function selectGender(g) { createData.gender = g; renderCreateStep(); }
+function selectClass(id) { createData.class = id; renderCreateStep(); }
+function createBack() { createStep--; renderCreateStep(); }
+function createNext() {
+  if(createStep===0) {
+    const n = document.getElementById('name-input')?.value.trim();
+    if(!n) { showToast('Masukkan nama dulu!'); return; }
+    createData.name = n;
+  } else if(createStep===1 && !createData.gender) {
+    showToast('Pilih gender dulu!'); return;
+  } else if(createStep===2 && !createData.class) {
+    showToast('Pilih class dulu!'); return;
+  }
+  createStep++; renderCreateStep();
+}
+function finishCreate() {
+  if(!createData.class) { showToast('Pilih class dulu!'); return; }
+  G.player = makePlayer(createData.name, createData.class, createData.gender);
+  G.scene = 'prologue'; G.sceneStep = 0;
+  G.romanceFlags = { kira:0, ren:0, nyx:0, lance:0 };
+  G.flags = {}; G.dungeonLog = [];
+  initGame();
+}
+
+// ============================================================
+// SAVE / LOAD — Slot System
+// ============================================================
+const SAVE_SLOTS = 3;
+
+function getSaveKey(slot) { return `gatezero_save_${slot}`; }
+
+function saveGame(slot=1) {
+  const data = { ...G, savedAt: new Date().toLocaleString('id-ID'), scene: G.scene, level: G.player?.level, name: G.player?.name };
+  localStorage.setItem(getSaveKey(slot), JSON.stringify(data));
+  showToast(`💾 Tersimpan di Slot ${slot}`);
+  closeModal('save-modal');
+}
+
+function loadGame(slot=1) {
+  const s = localStorage.getItem(getSaveKey(slot));
+  if(!s) { showToast('Slot kosong.'); return; }
+  G = JSON.parse(s);
+  closeModal('save-modal');
+  initGame();
+}
+
+function deleteSave(slot) {
+  localStorage.removeItem(getSaveKey(slot));
+  showToast(`🗑️ Slot ${slot} dihapus`);
+  openSaveMenu();
+}
+
+function openSaveMenu() {
+  const body = document.getElementById('modal-save-body');
+  let html = '';
+  for(let i=1; i<=SAVE_SLOTS; i++) {
+    const raw = localStorage.getItem(getSaveKey(i));
+    const data = raw ? JSON.parse(raw) : null;
+    html += `
+      <div style="background:var(--bg3);border:1px solid var(--border);border-radius:4px;padding:12px;margin-bottom:10px">
+        <div style="font-family:'Orbitron',monospace;font-size:11px;color:var(--cyan);margin-bottom:6px">SLOT ${i}</div>
+        ${data ? `
+          <div style="font-size:13px;color:var(--text);margin-bottom:2px">${data.name||'???'} — Lv.${data.level||1}</div>
+          <div style="font-size:10px;color:var(--text2);margin-bottom:8px;font-family:'Rajdhani',sans-serif">${data.savedAt||'—'} | Scene: ${data.scene||'—'}</div>
+          <div style="display:flex;gap:6px">
+            <button class="btn small" style="flex:1" onclick="saveGame(${i})">💾 Overwrite</button>
+            <button class="btn small success" style="flex:1" onclick="loadGame(${i})">▶ Load</button>
+            <button class="btn small danger" style="flex:0 0 auto;padding:8px 10px" onclick="deleteSave(${i})">🗑️</button>
+          </div>
+        ` : `
+          <div style="font-size:12px;color:var(--text2);font-style:italic;margin-bottom:8px">— Kosong —</div>
+          <button class="btn small" onclick="saveGame(${i})">💾 Simpan di sini</button>
+        `}
+      </div>`;
+  }
+  // Quick load from old single save (backward compat)
+  const oldSave = localStorage.getItem('gatezero_save');
+  if(oldSave) {
+    html += `<div style="font-size:11px;color:var(--text2);text-align:center;margin-top:8px;font-family:'Rajdhani',sans-serif">
+      Save lama terdeteksi — <button onclick="migrateOldSave()" style="background:none;border:none;color:var(--cyan);cursor:pointer;font-family:'Rajdhani',sans-serif;font-size:11px;text-decoration:underline">Import ke Slot 1</button>
+    </div>`;
+  }
+  body.innerHTML = html;
+  document.getElementById('save-modal').classList.add('open');
+}
+
+function migrateOldSave() {
+  const s = localStorage.getItem('gatezero_save');
+  if(!s) return;
+  const data = JSON.parse(s);
+  data.savedAt = 'Imported';
+  localStorage.setItem(getSaveKey(1), JSON.stringify(data));
+  localStorage.removeItem('gatezero_save');
+  showToast('Save lama dipindah ke Slot 1!');
+  openSaveMenu();
+}
+
+// ============================================================
+// INIT
+// ============================================================
+function initGame() {
+  showScreen('game'); updateHUD(); switchTab('story'); renderStory();
+  playBGM('bgm-dungeon');
+}
+
+function updateHUD() {
+  const p = G.player; if(!p) return;
+  const cp = CLASS_PATHS[p.class];
+  const gColor = p.gender==='f' ? '#ec4899' : '#3b82f6';
+  const gIcon  = p.gender==='f' ? '♀' : '♂';
+  document.getElementById('hud-avatar').innerHTML = `<div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,${gColor}33,${gColor}66);border:1.5px solid ${gColor};display:flex;align-items:center;justify-content:center;font-size:15px;color:${gColor};margin-top:2px">${gIcon}</div>`;
+  document.getElementById('hud-name').textContent = p.name;
+  document.getElementById('hud-meta').textContent = `${p.starName} | ★`.padEnd(p.star,'★').substring(0,p.star+2);
+  document.getElementById('hud-level').textContent = p.level;
+  const rankEl = document.getElementById('hud-rank');
+  rankEl.innerHTML = `<span class="rank-badge rank-${p.hunterRank}">${p.hunterRank}</span>`;
+  document.getElementById('hud-gold').textContent = `💎 ${p.gold}`;
+  const hpPct = Math.max(0,(p.hp/p.maxHp)*100);
+  const mpPct = Math.max(0,(p.mp/p.maxMp)*100);
+  const xpPct = Math.max(0,(p.xp/p.xpNext)*100);
+  document.getElementById('bar-hp').style.width=hpPct+'%';
+  document.getElementById('bar-mp').style.width=mpPct+'%';
+  document.getElementById('bar-xp').style.width=xpPct+'%';
+  document.getElementById('val-hp').textContent=`${p.hp}/${p.maxHp}`;
+  document.getElementById('val-mp').textContent=`${p.mp}/${p.maxMp}`;
+  document.getElementById('val-xp').textContent=`${p.xp}/${p.xpNext}`;
+}
+
+// ============================================================
+// TABS
+// ============================================================
+function switchTab(t) {
+  G.tab = t;
+  ['story','status','inventory','romance'].forEach(tab=>{
+    document.getElementById('tab-'+tab+'-content').style.display=tab===t?'block':'none';
+    document.getElementById('tab-'+tab).classList.toggle('active',tab===t);
+  });
+  if(t==='status') renderStatus();
+  if(t==='inventory') renderInventory();
+  if(t==='romance') renderRomance();
+  if(t==='story') renderStory();
+}
+
+// ============================================================
+// STORY ENGINE
+// ============================================================
+function renderStory() {
+  const el = document.getElementById('tab-story-content');
+  if(!el) return;
+  if(G.combat) { renderCombat(el); return; }
+
+  // Romance branch — arah ke route berdasarkan gender + affinity tertinggi
+  if(G.scene==='romance_branch') {
+    const pg = G.player?.gender||'m';
+    const rf = G.romanceFlags;
+    const top = Object.entries(rf).sort((a,b)=>b[1]-a[1])[0];
+    const npc = NPCS.find(n=>n.id===top[0]);
+    const sameGender = npc?.gender === pg;
+    G.scene = sameGender ? 'friend_'+top[0] : 'romance_'+top[0];
+    G.sceneStep=0;
+    renderStory(); return;
+  }
+
+  // Check lose scene
+  const loseScene = LOSE_SCENES[G.scene];
+  if(loseScene) {
+    if(!G.flags['lose_visited_'+G.scene]) {
+      G.flags['lose_visited_'+G.scene]=true;
+      loseScene.onEnter&&loseScene.onEnter();
+    }
+    el.innerHTML = buildStoryHTML(loseScene.loc, loseScene.text, loseScene.choices);
+    return;
+  }
+
+  const arr = SCENES[G.scene];
+  if(!arr) { el.innerHTML=`<div class="empty-state">Scene tidak ditemukan: ${G.scene}</div>`; return; }
+  const scene = arr[G.sceneStep]||arr[0];
+
+  if(scene.combat) { startCombat(G.scene, el); return; }
+
+  if(scene.onEnter && !G.flags['visit_'+G.scene+'_'+G.sceneStep]) {
+    G.flags['visit_'+G.scene+'_'+G.sceneStep]=true;
+    scene.onEnter();
+  }
+
+  const textContent = typeof scene.text === 'function' ? scene.text() : scene.text;
+  el.innerHTML = buildStoryHTML(scene.loc, textContent, scene.choices);
+}
+
+function buildStoryHTML(loc, text, choices) {
+  return `
+    <div class="location-bar"><div class="loc-line"></div><div class="loc-text">${loc}</div><div class="loc-line right"></div></div>
+    <div class="story-box">
+      <div class="story-corner"></div>
+      <div class="story-corner br"></div>
+      <div class="story-text">${text}</div>
+    </div>
+    <div class="choices">
+      ${choices.map((c,i)=>`
+        <button class="choice-btn ${c.type==='combat'?'combat-choice':''} ${c.rom?'romance-choice':''} ${c.type==='grind'?'system-choice':''}"
+          onclick="chooseOption(${i})">
+          <span class="choice-prefix">${c.rom?'💕 ROMANCE — ':c.type==='combat'?'⚔️ COMBAT — ':c.type==='grind'?'◈ DUNGEON — ':'▶ '}</span>
+          ${c.icon||''} ${c.text}
+        </button>`).join('')}
+    </div>
+    <div style="margin-top:14px"><button class="btn secondary small" onclick="openSaveMenu()">💾 SAVE</button></div>
+  `;
+}
+
+function chooseOption(idx) {
+  const arr = SCENES[G.scene]; if(!arr) return;
+  const scene = arr[G.sceneStep]||arr[0];
+  const choice = scene.choices[idx]; if(!choice) return;
+  if(choice.rom && choice.romVal) {
+    G.romanceFlags[choice.rom]=(G.romanceFlags[choice.rom]||0)+choice.romVal;
+    const npc = NPCS.find(n=>n.id===choice.rom);
+    showToast(`💕 ${npc?.name} +${choice.romVal}`);
+  }
+  if(choice.action==='save') { openSaveMenu(); return; }
+  if(choice.action==='stats') { switchTab('status'); return; }
+  if(choice.next) { G.scene=choice.next; G.sceneStep=0; G.combat=null; renderStory(); }
+}
+
+function openTitleLoadMenu() {
+  const body = document.getElementById('modal-save-body');
+  let html = '<p style="font-size:12px;color:var(--text3);margin-bottom:12px;font-family:Rajdhani,sans-serif">Pilih slot untuk dilanjutkan:</p>';
+  let hasAny = false;
+  for(let i=1; i<=SAVE_SLOTS; i++) {
+    const raw = localStorage.getItem(getSaveKey(i));
+    const data = raw ? JSON.parse(raw) : null;
+    if(!data) continue;
+    hasAny = true;
+    html += `
+      <div style="background:var(--bg3);border:1px solid var(--border);border-radius:4px;padding:12px;margin-bottom:10px">
+        <div style="font-family:'Orbitron',monospace;font-size:11px;color:var(--cyan);margin-bottom:4px">SLOT ${i}</div>
+        <div style="font-size:13px;color:var(--text);margin-bottom:2px">${data.name||'???'} — Lv.${data.level||1}</div>
+        <div style="font-size:10px;color:var(--text2);margin-bottom:8px;font-family:'Rajdhani',sans-serif">${data.savedAt||'—'}</div>
+        <button class="btn small success" onclick="loadGame(${i})">▶ Lanjutkan</button>
+      </div>`;
+  }
+  const oldSave = localStorage.getItem('gatezero_save');
+  if(oldSave) {
+    hasAny = true;
+    html += `<div style="background:var(--bg3);border:1px solid #3a3010;border-radius:4px;padding:12px;margin-bottom:10px">
+      <div style="font-family:'Orbitron',monospace;font-size:11px;color:var(--gold2);margin-bottom:4px">SAVE LAMA</div>
+      <button class="btn small success" onclick="migrateAndLoad()">▶ Import & Lanjutkan</button>
+    </div>`;
+  }
+  if(!hasAny) html += `<div class="empty-state">Tidak ada save file. Mulai New Game dulu.</div>`;
+  body.innerHTML = html;
+  document.getElementById('save-modal').classList.add('open');
+}
+
+function migrateAndLoad() {
+  const s = localStorage.getItem('gatezero_save');
+  if(!s) return;
+  const data = JSON.parse(s);
+  data.savedAt = 'Imported';
+  localStorage.setItem(getSaveKey(1), JSON.stringify(data));
+  localStorage.removeItem('gatezero_save');
+  loadGame(1);
+}
+
+// ============================================================
+// COMBAT
+// ============================================================
+function startCombat(sceneId, el) {
+  const cm = COMBAT_MAP[sceneId]; if(!cm) return;
+  let e = JSON.parse(JSON.stringify(ENEMIES[cm.enemy]));
+  if(G.flags.ss_analyze && cm.enemy==='gate_ss_boss') { e.def -= 8; }
+  G.combat = { sceneId, enemy:e, log:[`<span class="log-system">[ COMBAT STARTED: ${e.name} ]</span>`], ended:false };
+  // BGM: boss music for SS/SSS rank, combat for the rest
+  const bossRanks = ['SS','SSS'];
+  if(bossRanks.includes(e.rank)) playBGM('bgm-boss', 0.5);
+  else playBGM('bgm-combat', 0.5);
+  renderCombat(el);
+}
+
+function renderCombat(el) {
+  const c = G.combat; if(!c) return;
+  const p = G.player; const e = c.enemy;
+  const hpPct = Math.max(0,(e.hp/e.maxHp)*100);
+  const rankColor = `var(--rank-${e.rank})`;
+  el.innerHTML = `
+    <div class="combat-wrap">
+      <div class="combat-header">◈ COMBAT INITIATED ◈</div>
+      <div class="enemy-display">
+        <div class="enemy-sprite">${e.icon}</div>
+        <div class="enemy-data">
+          <div><span class="rank-badge rank-${e.rank}">${e.rank}</span></div>
+          <div class="enemy-name">${e.name}</div>
+          <div class="bar-row" style="margin-top:6px">
+            <span class="bar-label">HP</span>
+            <div class="bar"><div class="bar-fill hp" style="width:${hpPct}%"></div></div>
+            <span class="bar-val">${e.hp}/${e.maxHp}</span>
+          </div>
+        </div>
+      </div>
+      <div class="combat-log" id="clog">${c.log.slice(-6).map(l=>`<div>${l}</div>`).join('')}</div>
+      ${!c.ended ? `
+        <div class="combat-actions">
+          <button class="action-btn atk" onclick="doAction('atk')">⚔️ ATTACK</button>
+          <button class="action-btn skl" onclick="doAction('skl')" ${p.mp<20?'disabled':''}>✨ SKILL<br><span style="font-size:10px">(20 MP)</span></button>
+          <button class="action-btn itm" onclick="doAction('itm')">🧪 ITEM</button>
+          <button class="action-btn def" onclick="doAction('def')">🛡️ DEFEND</button>
+        </div>` : `<button class="btn" onclick="combatEnd()">CONTINUE ▶</button>`}
+    </div>`;
+  const cl = document.getElementById('clog');
+  if(cl) cl.scrollTop = cl.scrollHeight;
+}
+
+function doAction(act) {
+  const c = G.combat; const p = G.player; const e = c.enemy;
+  if(c.ended) return;
+  let tempDef = p.def + (ITEMS[p.equipped?.armor]?.stat?.def||0);
+
+  if(act==='atk') {
+    const weapStat = ITEMS[p.equipped?.weapon]?.stat||{};
+    const totalAtk = p.atk + (weapStat.atk||0);
+    const totalCrit = p.crit + (weapStat.crit||0);
+    const isCrit = Math.random()*100 < totalCrit;
+    const isMiss = Math.random()*100 < Math.max(0, (e.dodge||3));
+    if(isMiss) c.log.push(`<span class="log-miss">Miss — serangan tidak mengenai.</span>`);
+    else {
+      let dmg = Math.max(1, totalAtk - e.def + (isCrit?Math.floor(totalAtk*0.6):0));
+      c.log.push(isCrit
+        ? `<span class="log-crit">💥 CRITICAL! ${p.name} → ${dmg} DMG!</span>`
+        : `<span class="log-player">⚔️ ${p.name} → ${dmg} DMG</span>`);
+      e.hp = Math.max(0, e.hp-dmg);
+    }
+  } else if(act==='skl') {
+    if(p.mp<20) { showToast('MP tidak cukup!'); return; }
+    p.mp-=20; updateHUD();
+    const isMatk = ['mage','healer'].includes(p.class);
+    const weapStat = ITEMS[p.equipped?.weapon]?.stat||{};
+    const base = isMatk ? p.matk+(weapStat.matk||0) : p.atk+(weapStat.atk||0);
+    const dmg = Math.max(5, Math.floor(base*2.0)-Math.floor(e.def*0.5));
+    c.log.push(`<span class="log-skill">✨ SPECIAL SKILL: ${dmg} DMG!</span>`);
+    e.hp = Math.max(0, e.hp-dmg);
+  } else if(act==='itm') {
+    const pot = p.inventory?.find(s=>s.id==='hp_potion'&&s.qty>0);
+    if(!pot) { showToast('Tidak ada HP Potion!'); return; }
+    pot.qty--; if(pot.qty<=0) p.inventory=p.inventory.filter(s=>s!==pot);
+    const h=40; p.hp=Math.min(p.maxHp,p.hp+h);
+    c.log.push(`<span class="log-heal">🧪 HP +${h}</span>`);
+    updateHUD(); renderInventory();
+  } else if(act==='def') {
+    tempDef = Math.floor(tempDef*1.6);
+    c.log.push(`<span class="log-system">🛡️ DEFEND — DEF ↑</span>`);
+  }
+
+  if(e.hp<=0) {
+    c.log.push(`<span class="log-system">[ ${e.name} DEFEATED ]</span>`);
+    c.ended=true;
+    if(e.loot) e.loot.forEach(id=>{ if(Math.random()>0.35){ addItem(id,1); c.log.push(`<span class="log-heal">◈ DROP: ${ITEMS[id]?.name||id}</span>`); }});
+    p.gold+=e.gold||0;
+    c.log.push(`<span class="log-heal">💎 +${e.gold} Gold</span>`);
+    gainXP(e.xp||0, true);
+    G.dungeonLog.push({ name:e.name, rank:e.rank, xp:e.xp, gold:e.gold });
+    G.flags.ss_analyze=false;
+    renderCombat(document.getElementById('tab-story-content'));
+    updateHUD(); return;
+  }
+
+  // enemy turn
+  setTimeout(()=>{
+    const eDmg = Math.max(1, (e.atk||10) - tempDef);
+    const eDodge = Math.random()*100 < p.dodge;
+    if(eDodge) c.log.push(`<span class="log-system">DODGE!</span>`);
+    else {
+      p.hp = Math.max(0, p.hp-eDmg);
+      c.log.push(`<span class="log-enemy">💢 ${e.name} → ${eDmg} DMG</span>`);
+    }
+    updateHUD();
+    if(p.hp<=0) {
+      p.hp=1; c.log.push(`<span class="log-enemy">[ HP CRITICAL ]</span>`);
+      c.ended=true;
+      const loseKey='lose_'+c.sceneId.replace('combat_','');
+      G.combat=null;
+      G.scene=loseKey; G.sceneStep=0;
+      playBGM('bgm-dungeon');
+      renderStory(); return;
+    }
+    renderCombat(document.getElementById('tab-story-content'));
+  },600);
+}
+
+function combatEnd() {
+  const c=G.combat; const cm=COMBAT_MAP[c.sceneId];
+  G.combat=null; G.scene=cm.win; G.sceneStep=0;
+  playBGM('bgm-dungeon');
+  renderStory();
+}
+
+// ============================================================
+// XP & LEVEL
+// ============================================================
+function gainXP(amt, silent) {
+  const p=G.player;
+  if(p.class==='irregular') amt=Math.floor(amt*1.05);
+  p.xp+=amt;
+  if(!silent) showToast(`+${amt} XP`);
+  else showToast(`+${amt} XP`);
+  while(p.xp>=p.xpNext) levelUp();
+  updateHUD();
+}
+
+function levelUp() {
+  const p=G.player;
+  p.level++; p.xp-=p.xpNext; p.xpNext=Math.floor(p.xpNext*1.45);
+  p.statPoints=(p.statPoints||0)+3;
+  const hpG=12+Math.floor(p.vit/2); const mpG=6+Math.floor(p.int/3);
+  p.maxHp+=hpG; p.maxMp+=mpG; p.hp=p.maxHp; p.mp=p.maxMp;
+  p.atk+=2; p.def+=1; p.matk+=2;
+  // rank up
+  const rankThresholds={2:'E',5:'D',10:'C',18:'B',28:'A',40:'S',55:'SS',70:'SSS'};
+  if(rankThresholds[p.level]) { p.hunterRank=rankThresholds[p.level]; showToast(`🎉 RANK UP: ${p.hunterRank}!`); }
+  showToast(`⬆️ LEVEL ${p.level}! +3 Stat Points`);
+  // check star upgrade available
+  checkStarUpgrade();
+  updateHUD();
+}
+
+function checkStarUpgrade() {
+  const p=G.player;
+  const cp=CLASS_PATHS[p.class];
+  const nextStar=cp.stars[p.star];
+  if(!nextStar) return;
+  const req=nextStar.req;
+  if(!req) return;
+  const hasLevel=p.level>=req.level;
+  const hasMat=req.mat&&(p.materials[req.mat]||0)>=1;
+  if(hasLevel&&hasMat) {
+    G.flags.can_star_up=true;
+    document.getElementById('inv-dot').style.display='block';
+    showToast(`⭐ Star Upgrade tersedia!`);
+  }
+}
+
+// ============================================================
+// STATUS TAB
+// ============================================================
+function renderStatus() {
+  const p=G.player; if(!p) return;
+  const cp=CLASS_PATHS[p.class];
+  const el=document.getElementById('tab-status-content');
+  const nextStar=cp.stars[p.star];
+  const canUp=G.flags.can_star_up;
+  const weapStat=ITEMS[p.equipped?.weapon]?.stat||{};
+  const armStat=ITEMS[p.equipped?.armor]?.stat||{};
+
+  el.innerHTML=`
+    ${canUp?`<div class="upgrade-banner"><h3>⭐ STAR UPGRADE TERSEDIA!</h3><p>${cp.stars[p.star-1].name} → ${nextStar?.name}</p><button class="btn violet small" style="margin-top:8px" onclick="openStarUpgrade()">UPGRADE ▶</button></div>`:''}
+    <div class="class-display">
+      <div class="class-icon-big">${cp.stars[p.star-1].icon}</div>
+      <div class="class-name-big">${p.starName}</div>
+      <div class="class-rank-line">${cp.name.toUpperCase()} | LV.${p.level} | <span class="rank-badge rank-${p.hunterRank}">${p.hunterRank}</span></div>
+    </div>
+    <div class="star-display">
+      ${Array(6).fill(0).map((_,i)=>`<span class="star ${i<p.star?'lit':'dim'}">★</span>`).join('')}
+    </div>
+    ${nextStar&&nextStar.req?`<p style="font-size:11px;color:var(--text2);text-align:center;margin-bottom:16px;font-family:'Rajdhani',sans-serif">
+      Next: ${nextStar.name} — Lv.${nextStar.req.level} + ${MAT_NAMES[nextStar.req.mat]||nextStar.req.mat} x1
+      (${p.materials[nextStar.req.mat]||0}/1)
+    </p>`:''}
+    <div class="stats-section">
+      <div class="stats-title">BASE STATS ${p.statPoints>0?`<span style="color:var(--green2);font-size:10px">+${p.statPoints} POINTS</span>`:''}</div>
+      ${['str','agi','int','vit'].map(s=>`
+        <div class="stat-row">
+          <span class="stat-name">${s.toUpperCase()}</span>
+          <div style="display:flex;align-items:center;gap:8px">
+            <span class="stat-val">${p[s]}</span>
+            ${p.statPoints>0?`<button class="btn small" style="padding:2px 12px;margin:0" onclick="addStat('${s}')">+</button>`:''}
+          </div>
+        </div>`).join('')}
+    </div>
+    <div class="stats-section">
+      <div class="stats-title">COMBAT</div>
+      <div class="stat-row"><span class="stat-name">ATK</span><span class="stat-val ${weapStat.atk?'up':''}">${p.atk+(weapStat.atk||0)}</span></div>
+      <div class="stat-row"><span class="stat-name">DEF</span><span class="stat-val ${armStat.def?'up':''}">${p.def+(armStat.def||0)}</span></div>
+      <div class="stat-row"><span class="stat-name">MATK</span><span class="stat-val ${weapStat.matk?'up':''}">${p.matk+(weapStat.matk||0)}</span></div>
+      <div class="stat-row"><span class="stat-name">CRIT</span><span class="stat-val">${p.crit+(weapStat.crit||0)}%</span></div>
+      <div class="stat-row"><span class="stat-name">DODGE</span><span class="stat-val">${p.dodge}%</span></div>
+    </div>
+    <div class="stats-section">
+      <div class="stats-title">EQUIPMENT</div>
+      <div class="stat-row"><span class="stat-name">Weapon</span><span class="stat-val">${ITEMS[p.equipped?.weapon]?ITEMS[p.equipped.weapon].icon+' '+ITEMS[p.equipped.weapon].name:'—'}</span></div>
+      <div class="stat-row"><span class="stat-name">Armor</span><span class="stat-val">${ITEMS[p.equipped?.armor]?ITEMS[p.equipped.armor].icon+' '+ITEMS[p.equipped.armor].name:'—'}</span></div>
+    </div>
+    <div class="stats-section">
+      <div class="stats-title">DUNGEON LOG</div>
+      ${G.dungeonLog.length===0?'<div class="empty-state" style="padding:12px">Belum ada dungeon yang di-clear.</div>':
+      G.dungeonLog.slice(-5).reverse().map(d=>`
+        <div class="stat-row"><span class="stat-name"><span class="rank-badge rank-${d.rank}">${d.rank}</span> ${d.name}</span><span class="stat-val" style="font-size:10px">+${d.xp}XP</span></div>
+      `).join('')}
+    </div>
+  `;
+}
+
+function addStat(s) {
+  const p=G.player; if(!p.statPoints) return;
+  p[s]++; p.statPoints--;
+  if(s==='str'){p.atk+=2;}
+  if(s==='vit'){p.maxHp+=8;p.hp=Math.min(p.hp+8,p.maxHp);p.def+=1;}
+  if(s==='int'){p.maxMp+=5;p.matk+=2;}
+  if(s==='agi'){p.crit+=2;if(p.agi%4===0)p.dodge+=2;}
+  updateHUD(); renderStatus();
+}
+
+// Star Upgrade
+function openStarUpgrade() {
+  const p=G.player;
+  const cp=CLASS_PATHS[p.class];
+  const next=cp.stars[p.star];
+  if(!next) { showToast('Sudah max star!'); return; }
+  const req=next.req;
+  const hasLv=p.level>=req.level;
+  const matCount=p.materials[req.mat]||0;
+  const hasMat=matCount>=1;
+
+  document.getElementById('modal-class-body').innerHTML=`
+    <div style="text-align:center;margin-bottom:16px">
+      <div style="font-size:40px">${cp.stars[p.star-1].icon} → ${next.icon}</div>
+      <div style="font-family:'Orbitron',monospace;font-size:14px;color:var(--cyan);margin-top:8px">${cp.stars[p.star-1].name} → ${next.name}</div>
+      ${next.awakened?'<div style="color:var(--gold2);font-size:12px;margin-top:4px">⭐ AWAKENED CLASS</div>':''}
+    </div>
+    <div class="stat-row"><span class="stat-name">Level</span><span class="stat-val ${hasLv?'up':''}">${p.level}/${req.level} ${hasLv?'✓':'✗'}</span></div>
+    <div class="stat-row"><span class="stat-name">${MAT_NAMES[req.mat]||req.mat}</span><span class="stat-val ${hasMat?'up':''}">${matCount}/1 ${hasMat?'✓':'✗'}</span></div>
+    ${Object.entries(next.bonus||{}).map(([k,v])=>`<div class="stat-row"><span class="stat-name">${k.toUpperCase()}</span><span class="stat-val up">+${v}</span></div>`).join('')}
+    <div style="margin-top:14px">
+      <button class="btn violet" ${!hasLv||!hasMat?'disabled':''} onclick="doStarUp()">⭐ UPGRADE</button>
+    </div>
+  `;
+  document.getElementById('class-modal').classList.add('open');
+}
+
+function doStarUp() {
+  const p=G.player;
+  const cp=CLASS_PATHS[p.class];
+  const next=cp.stars[p.star];
+  if(!next) return;
+  const req=next.req;
+  if(p.level<req.level||(p.materials[req.mat]||0)<1) { showToast('Syarat belum terpenuhi!'); return; }
+  p.materials[req.mat]--;
+  p.star++;
+  p.starName=next.name;
+  const bonus=next.bonus||{};
+  Object.entries(bonus).forEach(([k,v])=>{ if(p[k]!==undefined) p[k]+=v; });
+  if(bonus.vit) { p.maxHp+=bonus.vit*5; p.hp=p.maxHp; }
+  if(bonus.int) { p.maxMp+=bonus.int*3; p.mp=p.maxMp; }
+  G.flags.can_star_up=false;
+  document.getElementById('inv-dot').style.display='none';
+  closeModal('class-modal');
+  showToast(`⭐ ${next.name} — UNLOCKED!`);
+  updateHUD(); renderStatus();
+}
+
+// ============================================================
+// INVENTORY
+// ============================================================
+function renderInventory() {
+  const p=G.player; if(!p) return;
+  const el=document.getElementById('tab-inventory-content');
+  const sections={ consumable:{label:'Consumables',items:[]}, weapon:{label:'Weapons',items:[]}, armor:{label:'Armor',items:[]}, material:{label:'Materials',items:[]}, key:{label:'Key Items',items:[]} };
+  p.inventory?.forEach(slot=>{ const item=ITEMS[slot.id]; if(!item) return; (sections[item.type]||sections.key).items.push({...slot,item}); });
+  // add materials
+  Object.entries(p.materials||{}).forEach(([id,qty])=>{
+    if(qty<=0) return;
+    const item=ITEMS[id]; if(!item) return;
+    sections.material.items.push({id,qty,item});
+  });
+
+  let html=`<div style="font-size:13px;color:var(--text3);margin-bottom:12px;font-family:'Rajdhani',sans-serif">💎 Gold: <span style="color:var(--gold2)">${p.gold}</span></div>`;
+  Object.values(sections).forEach(sec=>{
+    if(!sec.items.length) return;
+    html+=`<div class="stats-title">${sec.label}</div><div class="item-list">`;
+    sec.items.forEach(slot=>{
+      const item=slot.item;
+      const eq=(p.equipped?.weapon===slot.id||p.equipped?.armor===slot.id);
+      html+=`<div class="item-card" onclick="openItem('${slot.id}')">
+        <div class="item-icon">${item.icon}</div>
+        <div class="item-info">
+          <div class="item-name">${item.name} ${eq?'<span class="eq-badge">[EQ]</span>':''}</div>
+          <div class="item-desc">${item.desc}</div>
+          ${item.stat?`<div class="item-stat">${Object.entries(item.stat).map(([k,v])=>`${k.toUpperCase()}+${v}`).join(' | ')}</div>`:''}
+          <span class="rarity-${item.rarity}" style="font-size:9px;font-family:'Orbitron',monospace">${item.rarity.toUpperCase()}</span>
+        </div>
+        <div class="item-qty">x${slot.qty}</div>
+      </div>`;
+    });
+    html+=`</div>`;
+  });
+  if(html===`<div style="font-size:13px;color:var(--text3);margin-bottom:12px;font-family:'Rajdhani',sans-serif">💎 Gold: <span style="color:var(--gold2)">${p.gold}</span></div>`) html+=`<div class="empty-state">🎒 Inventory kosong.</div>`;
+  el.innerHTML=html;
+}
+
+function openItem(id) {
+  const p=G.player;
+  const matCount=p.materials?.[id];
+  let slot=p.inventory?.find(s=>s.id===id);
+  if(!slot && matCount!==undefined) slot={id,qty:matCount};
+  if(!slot) return;
+  const item=ITEMS[id]; if(!item) return;
+  const eq=(p.equipped?.weapon===id||p.equipped?.armor===id);
+  document.getElementById('modal-item-name').textContent=item.icon+' '+item.name;
+  let body=`<p style="color:var(--text3);font-size:13px;margin-bottom:10px">${item.desc}</p>`;
+  body+=`<p style="font-size:11px;margin-bottom:10px"><span class="rarity-${item.rarity}" style="font-family:'Orbitron',monospace;font-size:10px">${item.rarity.toUpperCase()}</span> • Qty: ${slot.qty}</p>`;
+  if(item.stat) body+=`<p style="font-size:12px;color:var(--green2);margin-bottom:10px;font-family:'Orbitron',monospace">${Object.entries(item.stat).map(([k,v])=>`${k.toUpperCase()}+${v}`).join(' | ')}</p>`;
+  if(item.effect?.hp||item.effect?.mp) body+=`<p style="font-size:12px;color:var(--cyan2);margin-bottom:12px;font-family:'Orbitron',monospace">${item.effect.hp?`HP+${item.effect.hp} `:''} ${item.effect.mp?`MP+${item.effect.mp}`:''}</p>`;
+  if(item.type==='consumable') body+=`<button class="btn" onclick="useItem('${id}');closeModal('item-modal')">🧪 Gunakan</button>`;
+  else if(item.type==='weapon') body+=`<button class="btn ${eq?'secondary':''}" onclick="equipItem('${id}','weapon');closeModal('item-modal')">${eq?'✓ Equipped':'⚔️ Equip'}</button>`;
+  else if(item.type==='armor') body+=`<button class="btn ${eq?'secondary':''}" onclick="equipItem('${id}','armor');closeModal('item-modal')">${eq?'✓ Equipped':'🛡️ Equip'}</button>`;
+  if(item.sell&&item.type!=='key') body+=`<button class="btn secondary" style="margin-top:6px" onclick="sellItem('${id}');closeModal('item-modal')">💎 Jual (${item.sell} Gold)</button>`;
+  document.getElementById('modal-item-body').innerHTML=body;
+  document.getElementById('item-modal').classList.add('open');
+}
+
+function useItem(id) {
+  const p=G.player;
+  const slot=p.inventory?.find(s=>s.id===id);
+  if(!slot||slot.qty<=0) { showToast('Item habis!'); return; }
+  const item=ITEMS[id];
+  if(item.effect?.hp) { p.hp=Math.min(p.maxHp,p.hp+item.effect.hp); showToast(`❤️ HP +${item.effect.hp}`); }
+  if(item.effect?.mp) { p.mp=Math.min(p.maxMp,p.mp+item.effect.mp); showToast(`💧 MP +${item.effect.mp}`); }
+  slot.qty--;
+  if(slot.qty<=0) p.inventory=p.inventory.filter(s=>s!==slot);
+  updateHUD(); renderInventory();
+}
+
+function equipItem(id, slot) {
+  G.player.equipped[slot]=id;
+  showToast(`✓ ${ITEMS[id].name} equipped!`);
+  updateHUD(); renderInventory(); renderStatus();
+}
+
+function sellItem(id) {
+  const p=G.player;
+  const slot=p.inventory?.find(s=>s.id===id);
+  if(!slot) return;
+  p.gold+=ITEMS[id].sell;
+  slot.qty--;
+  if(slot.qty<=0) p.inventory=p.inventory.filter(s=>s!==slot);
+  showToast(`💎 +${ITEMS[id].sell} Gold`);
+  updateHUD(); renderInventory();
+}
+
+function addItem(id,qty) {
+  const p=G.player;
+  const item=ITEMS[id]; if(!item) return;
+  if(item.type==='material') { p.materials=p.materials||{}; p.materials[id]=(p.materials[id]||0)+qty; }
+  else {
+    const ex=p.inventory?.find(s=>s.id===id);
+    if(ex) ex.qty+=qty; else p.inventory.push({id,qty});
+  }
+  document.getElementById('inv-dot').style.display='block';
+  setTimeout(()=>{ if(G.tab!=='inventory') document.getElementById('inv-dot').style.display='none'; },4000);
+  checkStarUpgrade();
+}
+
+function addMat(id,qty) { addItem(id,qty); }
+
+// ============================================================
+// ROMANCE TAB
+// ============================================================
+function npcAvatar(npc, size=48) {
+  return `<div style="width:${size}px;height:${size}px;border-radius:50%;background:linear-gradient(135deg,${npc.color}22,${npc.color}55);border:2px solid ${npc.color};display:flex;align-items:center;justify-content:center;font-family:'Orbitron',monospace;font-weight:900;font-size:${Math.floor(size*0.35)}px;color:${npc.color};flex-shrink:0;box-shadow:0 0 12px ${npc.color}33">${npc.initial}</div>`;
+}
+
+function renderRomance() {
+  const el=document.getElementById('tab-romance-content');
+  const pg = G.player?.gender||'m';
+
+  const getStatus=(v, npc)=>{
+    const sameGender = npc.gender === pg;
+    if(sameGender) return v>=60?'🤝 Sahabat':v>=30?'👊 Partner':'👤 Kenalan';
+    return v>=80?'💖 Kekasih':v>=50?'💕 Dekat':v>=20?'🤝 Teman':'👤 Asing';
+  };
+  const getBarColor=(npc)=> npc.gender===pg ? '#34d399' : npc.color;
+
+  el.innerHTML=`
+    <p style="font-size:12px;color:var(--text3);margin-bottom:16px;font-style:italic;font-family:'Rajdhani',sans-serif">
+      Pilihan dialogmu menentukan hubungan. Tiap karakter punya ending tersendiri.
+    </p>
+    ${NPCS.map(npc=>{
+      const sameGender = npc.gender === pg;
+      const affinity = G.romanceFlags[npc.id]||0;
+      const status = getStatus(affinity, npc);
+      const barColor = getBarColor(npc);
+      return `
+      <div class="npc-card" style="border-color:${npc.color}44">
+        ${npcAvatar(npc, 52)}
+        <div class="npc-data">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:2px">
+            <div class="npc-name-r" style="color:${npc.color}">${npc.name}</div>
+            <span style="font-size:9px;padding:1px 6px;border-radius:10px;background:${sameGender?'rgba(52,211,153,0.15)':'rgba(219,39,119,0.15)'};color:${sameGender?'#34d399':'#f472b6'};font-family:'Orbitron',monospace">${sameGender?'FRIEND ROUTE':'ROMANCE'}</span>
+          </div>
+          <div class="npc-role">${npc.role}</div>
+          <div class="affinity-bar" style="border-color:${npc.color}33">
+            <div class="affinity-fill" style="width:${Math.min(100,affinity)}%;background:linear-gradient(to right,${barColor}88,${barColor})"></div>
+          </div>
+          <div class="affinity-status">${status} — ${affinity}/100</div>
+        </div>
+      </div>
+      <p style="font-size:11px;color:var(--text3);font-style:italic;margin:-8px 0 14px 6px">"${npc.desc}"</p>
+    `}).join('')}
+    <div class="stats-title">AFFINITY TIPS</div>
+    <p style="font-size:12px;color:var(--text3);line-height:1.9;font-family:'Rajdhani',sans-serif">
+      • Dialog bertanda 💕 menaikkan affinity<br>
+      • Same gender → Friend Route (max: Sahabat)<br>
+      • Opposite gender → Romance Route (max: Kekasih 💖)<br>
+      • Affinity 80+ membuka ending eksklusif tiap karakter<br>
+      • Karakter affinity tertinggi dapat ending bersama
+    </p>
+  `;
+}
+
+// ============================================================
+// AUDIO MANAGER
+// ============================================================
+let currentBGM = null;
+let isMuted = false;
+let audioUnlocked = false;
+
+function unlockAudio() {
+  if (audioUnlocked) return;
+  audioUnlocked = true;
+  // Play & immediately pause all tracks to unlock audio context on mobile
+  ['bgm-menu','bgm-dungeon','bgm-combat','bgm-boss'].forEach(id => {
+    const a = document.getElementById(id);
+    if (!a) return;
+    a.volume = 0;
+    a.play().then(() => a.pause()).catch(() => {});
+    a.volume = 0.4;
+  });
+}
+
+function playBGM(id, volume = 0.4) {
+  unlockAudio();
+  if (currentBGM && currentBGM.id === id && !currentBGM.paused) return; // already playing
+  if (currentBGM) {
+    currentBGM.pause();
+    currentBGM.currentTime = 0;
+  }
+  const audio = document.getElementById(id);
+  if (!audio) return;
+  audio.volume = isMuted ? 0 : volume;
+  audio.play().catch(() => {});
+  currentBGM = audio;
+  currentBGM._targetVolume = volume;
+}
+
+function stopBGM() {
+  if (currentBGM) {
+    currentBGM.pause();
+    currentBGM.currentTime = 0;
+    currentBGM = null;
+  }
+}
+
+function toggleMute() {
+  isMuted = !isMuted;
+  const btn = document.getElementById('tab-mute');
+  if (currentBGM) currentBGM.volume = isMuted ? 0 : (currentBGM._targetVolume || 0.4);
+  if (btn) btn.textContent = isMuted ? '🔇' : '🔊';
+  showToast(isMuted ? '🔇 Music OFF' : '🔊 Music ON');
+}
+
+// ============================================================
+// UTILS
+// ============================================================
+function showScreen(id) { document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); document.getElementById('screen-'+id).classList.add('active'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+let toastTimer;
+function showToast(msg) {
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.classList.remove('show'),2200);
+}
+
+// Particles
+function initParticles() {
+  const c=document.getElementById('particles');
+  for(let i=0;i<15;i++) {
+    const p=document.createElement('div'); p.className='particle';
+    p.style.cssText=`left:${Math.random()*100}%;animation-duration:${3+Math.random()*5}s;animation-delay:${Math.random()*5}s;height:${10+Math.random()*30}px`;
+    c.appendChild(p);
+  }
+}
+
+document.querySelectorAll('.modal-overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open');}));
+// Unlock audio on first touch (mobile autoplay policy)
+document.addEventListener('touchstart', unlockAudio, { once: true });
+document.addEventListener('click', unlockAudio, { once: true });
+if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
+initParticles();
+</script>
+</body>
+</html>
